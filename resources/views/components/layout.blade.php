@@ -23,43 +23,85 @@
         <nav class="p-4 space-y-1">
             @php
                 $user = auth()->user();
-                $navItems = match(true) {
+                $navGroups = match(true) {
                     $user->isAdmin() => [
-                        ['label' => 'Dashboard', 'route' => 'admin.dashboard'],
-                        ['label' => 'Students', 'route' => 'admin.students.index'],
-                        ['label' => 'Guardians', 'route' => 'admin.guardians.index'],
-                       
-                        ['label' => 'Users', 'route' => 'admin.users.index'],
-                        ['label' => 'Announcements', 'route' => 'announcements.index'],
-                        ['label' => 'Reports', 'route' => 'admin.reports.index'],
-                        ['label' => 'Corrections', 'route' => 'attendance-corrections.index'],
-                        ['label' => 'Audit Logs', 'route' => 'admin.audit-logs.index'],
-                        ['label' => 'Backups', 'route' => 'admin.backups.index'],
-                        ['label' => 'Settings', 'route' => 'admin.settings.edit'],
+                        'Overview' => [
+                            ['label' => 'Dashboard', 'route' => 'admin.dashboard'],
+                        ],
+                        'Users' => [
+                            ['label' => 'User Accounts', 'route' => 'admin.users.index'],
+                            ['label' => 'Students', 'route' => 'admin.students.index'],
+                            ['label' => 'Guardians', 'route' => 'admin.guardians.index'],
+                        ],
+                        'School Records' => [
+                            ['label' => 'Sections', 'route' => 'admin.sections.index'],
+                        ],
+                        'Attendance' => [
+                            ['label' => 'QR Scanner', 'route' => 'scanner.index'],
+                            ['label' => 'Corrections', 'route' => 'attendance-corrections.index'],
+                            ['label' => 'Reports', 'route' => 'admin.reports.index'],
+                        ],
+                        'Communication' => [
+                            ['label' => 'Announcements', 'route' => 'announcements.index'],
+                        ],
+                        'System' => [
+                            ['label' => 'Settings', 'route' => 'admin.settings.edit'],
+                            ['label' => 'Audit Logs', 'route' => 'admin.audit-logs.index'],
+                            ['label' => 'Backups', 'route' => 'admin.backups.index'],
+                        ],
                     ],
                     $user->isSubAdmin() => [
-                        ['label' => 'Dashboard', 'route' => 'sub-admin.dashboard'],
-                        ['label' => 'Scanner', 'route' => 'scanner.index'],
-                        ['label' => 'Announcements', 'route' => 'announcements.index'],
-                        ['label' => 'Corrections', 'route' => 'attendance-corrections.index'],
+                        'Overview' => [
+                            ['label' => 'Dashboard', 'route' => 'sub-admin.dashboard'],
+                        ],
+                        'Attendance' => [
+                            ['label' => 'QR Scanner', 'route' => 'scanner.index'],
+                            ['label' => 'Corrections', 'route' => 'attendance-corrections.index'],
+                        ],
+                        'Communication' => [
+                            ['label' => 'Announcements', 'route' => 'announcements.index'],
+                        ],
                     ],
                     $user->isGuard() => [
-                        ['label' => 'Dashboard', 'route' => 'guard.dashboard'],
-                        ['label' => 'Scanner', 'route' => 'scanner.index'],
-                        ['label' => 'Corrections', 'route' => 'attendance-corrections.index'],
+                        'Overview' => [
+                            ['label' => 'Dashboard', 'route' => 'guard.dashboard'],
+                        ],
+                        'Attendance' => [
+                            ['label' => 'QR Scanner', 'route' => 'scanner.index'],
+                            ['label' => 'Corrections', 'route' => 'attendance-corrections.index'],
+                        ],
                     ],
                     default => [
-                        ['label' => 'Dashboard', 'route' => 'parent.dashboard'],
-                        ['label' => 'Announcements', 'route' => 'parent.announcements'],
+                        'Overview' => [
+                            ['label' => 'Dashboard', 'route' => 'parent.dashboard'],
+                        ],
+                        'Communication' => [
+                            ['label' => 'Announcements', 'route' => 'parent.announcements'],
+                        ],
                     ],
                 };
             @endphp
-            @foreach ($navItems as $item)
-                @php $active = request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*'); @endphp
-                <a href="{{ route($item['route']) }}"
-                   class="block px-3 py-2 rounded-lg text-sm font-medium {{ $active ? 'bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600 -ml-1 pl-4' : 'text-gray-600 hover:bg-gray-50' }}">
-                    {{ $item['label'] }}
-                </a>
+            @foreach ($navGroups as $groupName => $navItems)
+                @php
+                    $groupActive = collect($navItems)->contains(function (array $item): bool {
+                        return request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*');
+                    });
+                @endphp
+                <details class="group mb-2" @if ($groupActive) open @endif>
+                    <summary class="{{ $groupActive ? 'bg-indigo-700 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-indigo-50 hover:text-indigo-700' }} flex cursor-pointer list-none items-center justify-between rounded-lg px-3 py-3 text-sm font-bold transition focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <span>{{ $groupName }}</span>
+                        <span class="text-lg transition-transform group-open:rotate-180" aria-hidden="true">&#8964;</span>
+                    </summary>
+                    <div class="mt-1 space-y-1 border-l-2 border-indigo-100 py-1 pl-3">
+                        @foreach ($navItems as $item)
+                            @php $active = request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*'); @endphp
+                            <a href="{{ route($item['route']) }}"
+                               class="block rounded-md px-3 py-2 text-sm font-medium transition {{ $active ? 'bg-indigo-100 text-indigo-800' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900' }}">
+                                {{ $item['label'] }}
+                            </a>
+                        @endforeach
+                    </div>
+                </details>
             @endforeach
         </nav>
     </aside>

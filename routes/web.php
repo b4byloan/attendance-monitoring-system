@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\GuardianController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Models\Setting;
 use App\Http\Controllers\AttendanceCorrectionController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BackupController;
@@ -20,9 +21,10 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\DesignPreviewController;
 use App\Http\Controllers\SubAdminController;
 use App\Http\Controllers\Admin\SectionController;
+use App\Http\Controllers\StudentPortalController;
 
 Route::get('/', function () {
-    return view('auth.login');
+    return view('welcome', ['schoolSettings' => Setting::current()]);
 });
 
 Route::middleware('guest')->group(function () {
@@ -69,7 +71,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/design-preview', [DesignPreviewController::class, 'index'])->name('design-preview');
         Route::resource('sections', SectionController::class);
         Route::patch('/sections/{section}/toggle-status', [SectionController::class, 'toggleStatus'])->name('sections.toggle-status');
-    });
+                Route::post('/students/{student}/create-account', [StudentController::class, 'createAccount'])->name('students.create-account');
+        });
 
     Route::middleware('role:sub_admin')->prefix('sub-admin')->name('sub-admin.')->group(function () {
     Route::get('/dashboard', [SubAdminController::class, 'dashboard'])->name('dashboard');
@@ -113,3 +116,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/mark-all-read', [NotificationController::class, 'markAllRead'])->name('mark-all-read');
     });
 });
+
+    Route::middleware('role:student')->prefix('student')->name('student.')->group(function () {
+        Route::get('/dashboard', [StudentPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/attendance', [StudentPortalController::class, 'attendance'])->name('attendance');
+        Route::get('/profile', [StudentPortalController::class, 'profile'])->name('profile');
+        Route::get('/account-settings', [StudentPortalController::class, 'accountSettings'])->name('account-settings');
+        Route::put('/account-settings', [StudentPortalController::class, 'updateAccount'])->name('account-settings.update');
+    });
