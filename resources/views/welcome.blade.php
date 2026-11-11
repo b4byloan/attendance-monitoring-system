@@ -32,26 +32,81 @@
         </div>
     </div>
 
-    <header class="border-b border-slate-200 bg-white">
-        <nav class="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8" aria-label="Main navigation">
-            <a href="{{ url('/') }}" class="flex items-center gap-3">
+    <header class="relative border-b border-slate-200 bg-white">
+        <nav class="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 py-4 sm:px-8" aria-label="Main navigation">
+            <a href="{{ url('/') }}" class="flex min-w-0 items-center gap-3">
                 @if ($schoolSettings->school_logo_path)
                     <img src="{{ asset('storage/' . $schoolSettings->school_logo_path) }}"
                          alt="{{ $schoolSettings->school_name }} logo"
-                         class="h-14 w-14 rounded-full object-contain">
+                         class="h-11 w-11 shrink-0 rounded-full object-contain sm:h-14 sm:w-14">
                 @else
-                    <span class="flex h-14 w-14 items-center justify-center rounded-full bg-blue-800 text-2xl text-white">🏫</span>
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-blue-800 text-white sm:h-14 sm:w-14">
+                        <x-ui.icon name="school" class="h-6 w-6 sm:h-7 sm:w-7" />
+                    </span>
                 @endif
-                <span>
-                    <span class="block text-lg font-bold leading-tight text-blue-950 sm:text-xl">{{ $schoolSettings->school_name }}</span>
-                    <span class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Attendance Monitoring System</span>
+                <span class="min-w-0">
+                    <span class="block truncate text-base font-bold leading-tight text-blue-950 sm:text-xl">{{ $schoolSettings->school_name }}</span>
+                    <span class="hidden text-xs font-semibold uppercase tracking-wider text-slate-500 sm:block">Attendance Monitoring System</span>
                 </span>
             </a>
-            <a href="{{ route('login') }}" data-navigation
-               class="rounded-md bg-blue-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2">
-                Portal Login
-            </a>
+
+            <div class="hidden shrink-0 items-center gap-1 lg:flex lg:gap-2">
+                <a href="#announcements" class="rounded-md px-3 py-2 text-sm font-semibold text-blue-900 transition hover:bg-blue-50">
+                    Announcements
+                </a>
+                <a href="{{ route('school-history') }}" class="rounded-md px-3 py-2 text-sm font-semibold text-blue-900 transition hover:bg-blue-50">
+                    History of the School
+                </a>
+                <a href="{{ route('teachers') }}" class="rounded-md px-3 py-2 text-sm font-semibold text-blue-900 transition hover:bg-blue-50">
+                    Teachers
+                </a>
+                <a href="#about-us" class="rounded-md px-3 py-2 text-sm font-semibold text-blue-900 transition hover:bg-blue-50">
+                    About Us
+                </a>
+                @auth
+                    <a href="{{ route(auth()->user()->dashboardRoute()) }}" data-navigation
+                       class="rounded-md bg-blue-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2">
+                        Go to Dashboard
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" data-navigation
+                       class="rounded-md bg-blue-800 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2">
+                        Portal Login
+                    </a>
+                @endauth
+            </div>
+
+            <button id="mobile-menu-button" type="button"
+                    class="flex shrink-0 items-center justify-center rounded-md border border-slate-300 p-2 text-blue-950 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-600 lg:hidden"
+                    aria-controls="mobile-menu" aria-expanded="false" aria-label="Open navigation menu">
+                <svg id="mobile-menu-open-icon" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+                <svg id="mobile-menu-close-icon" class="hidden h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/>
+                </svg>
+            </button>
         </nav>
+
+        <div id="mobile-menu" class="hidden border-t border-slate-200 bg-white px-5 py-3 shadow-lg sm:px-8 lg:hidden">
+            <div class="mx-auto flex max-w-7xl flex-col gap-1">
+                <a href="#announcements" class="rounded-md px-3 py-3 text-sm font-semibold text-blue-900 hover:bg-blue-50">Announcements</a>
+                <a href="{{ route('school-history') }}" class="rounded-md px-3 py-3 text-sm font-semibold text-blue-900 hover:bg-blue-50">History of the School</a>
+                <a href="{{ route('teachers') }}" class="rounded-md px-3 py-3 text-sm font-semibold text-blue-900 hover:bg-blue-50">Teachers</a>
+                <a href="#about-us" class="rounded-md px-3 py-3 text-sm font-semibold text-blue-900 hover:bg-blue-50">About Us</a>
+                @auth
+                    <a href="{{ route(auth()->user()->dashboardRoute()) }}" data-navigation
+                       class="mt-2 rounded-md bg-blue-800 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-blue-900">
+                        Go to Dashboard
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" data-navigation
+                       class="mt-2 rounded-md bg-blue-800 px-4 py-3 text-center text-sm font-semibold text-white hover:bg-blue-900">
+                        Portal Login
+                    </a>
+                @endauth
+            </div>
+        </div>
     </header>
 
     <main>
@@ -67,9 +122,9 @@
                         Supporting daily school operations through accurate QR attendance, organized student records, timely notifications, and accessible reports.
                     </p>
                     <div class="mt-8 flex flex-col gap-3 sm:flex-row">
-                        <a href="{{ route('login') }}" data-navigation
+                        <a href="{{ auth()->check() ? route(auth()->user()->dashboardRoute()) : route('login') }}" data-navigation
                            class="rounded-md bg-yellow-400 px-6 py-3 text-center font-bold text-blue-950 transition hover:bg-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-300 focus:ring-offset-2 focus:ring-offset-blue-900">
-                            Open School Portal
+                            {{ auth()->check() ? 'Open My Dashboard' : 'Open School Portal' }}
                         </a>
                         <a href="#services"
                            class="rounded-md border border-blue-300 px-6 py-3 text-center font-semibold text-white transition hover:bg-white/10">
@@ -110,6 +165,53 @@
             </div>
         </section>
 
+        <section id="announcements" class="border-b border-slate-200 bg-white px-5 py-16 sm:px-8">
+            <div class="mx-auto max-w-7xl">
+                <div class="max-w-2xl">
+                    <h2 class="mt-2 text-3xl font-bold text-blue-800">Announcements</h2>
+                    {{-- <h2 class="mt-2 text-3xl font-bold text-slate-900">School updates</h2> --}}
+                    <p class="mt-4 leading-7 text-slate-600">
+                        The latest published announcements for the school community.
+                    </p>
+                </div>
+
+                @if ($announcements->isNotEmpty())
+                    <div class="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        @foreach ($announcements as $announcement)
+                            <article @class([
+                                'max-w-xl border border-slate-200 bg-white p-6 shadow-sm',
+                                'border-t-4 border-t-yellow-400' => $announcement->is_pinned,
+                                'border-t-4 border-t-blue-800' => ! $announcement->is_pinned,
+                            ])>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <h3 class="text-lg font-bold text-blue-950">{{ $announcement->title }}</h3>
+                                    @if ($announcement->is_pinned)
+                                        <span class="rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-yellow-800">Pinned</span>
+                                    @endif
+                                </div>
+                                <p class="mt-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    {{ $announcement->isSchoolWide() ? 'School-wide' : ($announcement->section?->name ?? 'Section') }}
+                                    &middot; {{ $announcement->publish_date->format('M j, Y') }}
+                                    @if ($announcement->expiration_date)
+                                        &middot; until {{ $announcement->expiration_date->format('M j, Y') }}
+                                    @endif
+                                </p>
+                                <p class="mt-3 line-clamp-3 leading-7 text-slate-600 whitespace-pre-line">{{ $announcement->description }}</p>
+                                <a href="{{ route('public-announcements.index') }}"
+                                   class="mt-4 inline-block font-semibold text-blue-800 hover:text-blue-950 hover:underline">
+                                    View more
+                                </a>
+                            </article>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="mt-8 rounded-lg border border-slate-200 bg-slate-50 px-5 py-4 text-slate-600">
+                        There are no active announcements at this time.
+                    </p>
+                @endif
+            </div>
+        </section>
+
         <section id="services" class="px-5 py-16 sm:px-8 sm:py-20">
             <div class="mx-auto max-w-7xl">
                 <div class="max-w-2xl">
@@ -137,6 +239,23 @@
             </div>
         </section>
 
+        <section id="about-us" class="px-5 py-16 sm:px-8 sm:py-20">
+            <div class="mx-auto grid max-w-7xl gap-10 rounded-lg border border-slate-200 bg-white p-8 shadow-sm lg:grid-cols-[.75fr_1.25fr] lg:p-12">
+                <div>
+                    <p class="text-sm font-bold uppercase tracking-widest text-blue-800">About Us</p>
+                    <h2 class="mt-2 text-3xl font-bold text-blue-950">About {{ $schoolSettings->school_name }}</h2>
+                </div>
+                <div class="space-y-5 leading-8 text-slate-600">
+                    <p>
+                        {{ $schoolSettings->school_name }} National High School, located in Trece Martires City, Cavite, was originally established in June 2007 as the Trece Martires City National High School – Cabezas Annex. At its founding, the school had around 17 teachers and initially operated in temporary locations such as an elementary school, barangay church, and barangay hall due to a lack of classrooms. Despite limited facilities, the school continued to function and serve a growing student population with support from local government units and stakeholders. Over time, infrastructure development improved, including the construction of a dedicated school building through the efforts of local officials. In the school year 2015–2016, the institution began the process of separating from its mother school to better manage academic programs and administration.
+                    </p>
+                    <p>
+                        Add the school's mission, vision, values, programs, and community commitment here.
+                    </p>
+                </div>
+            </div>
+        </section>
+
         <section class="border-y border-slate-200 bg-white px-5 py-14 sm:px-8">
             <div class="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1fr_auto] md:items-center">
                 <div>
@@ -145,9 +264,9 @@
                         Sign in using the account assigned by the school administrator. Access is limited according to your assigned role.
                     </p>
                 </div>
-                <a href="{{ route('login') }}" data-navigation
+                <a href="{{ auth()->check() ? route(auth()->user()->dashboardRoute()) : route('login') }}" data-navigation
                    class="rounded-md bg-blue-800 px-6 py-3 text-center font-semibold text-white transition hover:bg-blue-900">
-                    Sign in to the Portal
+                    {{ auth()->check() ? 'Go to My Dashboard' : 'Sign in to the Portal' }}
                 </a>
             </div>
         </section>
@@ -161,6 +280,36 @@
     </footer>
 
     <script>
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const mobileMenuOpenIcon = document.getElementById('mobile-menu-open-icon');
+        const mobileMenuCloseIcon = document.getElementById('mobile-menu-close-icon');
+
+        function setMobileMenu(open) {
+            mobileMenu.classList.toggle('hidden', !open);
+            mobileMenuOpenIcon.classList.toggle('hidden', open);
+            mobileMenuCloseIcon.classList.toggle('hidden', !open);
+            mobileMenuButton.setAttribute('aria-expanded', open ? 'true' : 'false');
+            mobileMenuButton.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+        }
+
+        mobileMenuButton.addEventListener('click', function () {
+            setMobileMenu(mobileMenu.classList.contains('hidden'));
+        });
+
+        mobileMenu.querySelectorAll('a').forEach(function (link) {
+            link.addEventListener('click', function () {
+                setMobileMenu(false);
+            });
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                setMobileMenu(false);
+                mobileMenuButton.focus();
+            }
+        });
+
         document.querySelectorAll('[data-navigation]').forEach(function (link) {
             link.addEventListener('click', function () {
                 const loader = document.getElementById('page-loader');

@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\LoadsNotificationBell;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Concerns\LoadsNotificationBell;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
     use LoadsNotificationBell;
+
     public function index(Request $request)
     {
         $query = User::query();
@@ -17,9 +19,13 @@ class UserController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%")
-                  ->orWhere('role', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('role', 'like', "%{$search}%");
             });
+        }
+
+        if ($role = $request->input('role')) {
+            $query->where('role', $role);
         }
 
         $users = $query->orderBy('name')->paginate(20)->withQueryString();
@@ -57,7 +63,7 @@ class UserController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email,' . $user->id],
+            'email' => ['required', 'email', 'unique:users,email,'.$user->id],
             'role' => ['required', 'in:admin,sub_admin,guard,parent'],
         ]);
 
@@ -70,15 +76,15 @@ class UserController extends Controller
         return redirect()->route('admin.users.index')->with('success', 'Account updated.');
     }
 
-    public function resetPassword(Request $request, User $user)
+    public function resetPassword(User $user)
     {
-        $validated = $request->validate([
-            'password' => ['required', 'string', 'min:8'],
-        ]);
+        $generatedPassword = Str::password(16, symbols: false);
 
-        $user->update(['password' => $validated['password']]);
+        $user->update(['password' => $generatedPassword]);
 
-        return back()->with('success', "Password reset for {$user->name}.");
+        return redirect()
+            ->route('admin.users.edit', $user)
+            ->with('generated_password', $generatedPassword);
     }
 
     public function toggleStatus(User $user)

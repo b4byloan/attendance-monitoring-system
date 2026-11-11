@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LoadsNotificationBell;
 use App\Models\ActivityLog;
 use App\Models\AttendanceCorrection;
 use App\Models\AttendanceRecord;
 use App\Models\Student;
-use Carbon\Carbon;
-use Illuminate\Http\Request;
 use App\Models\User;
 use App\Notifications\AttendanceCorrectionRequestedNotification;
 use App\Notifications\AttendanceCorrectionReviewedNotification;
-use Illuminate\Support\Facades\Request as RequestFacade;
-use App\Http\Controllers\Concerns\LoadsNotificationBell;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 
 class AttendanceCorrectionController extends Controller
 {
     use LoadsNotificationBell;
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -85,7 +85,7 @@ class AttendanceCorrectionController extends Controller
             return back()->withErrors(['duplicate' => 'There is already a pending correction request for this attendance record.']);
         }
 
-                $correction = AttendanceCorrection::create([
+        $correction = AttendanceCorrection::create([
             'attendance_record_id' => $attendanceRecord->id,
             'student_id' => $attendanceRecord->student_id,
             'requested_check_in_time' => $validated['requested_check_in_time'] ?? null,
@@ -119,7 +119,7 @@ class AttendanceCorrectionController extends Controller
         }
 
         if ($correction->requested_by === $request->user()->id) {
-            return back()->withErrors(['status' => 'You cannot approve your own correction request — another admin or sub-admin needs to review it.']);
+            return back()->withErrors(['status' => 'You cannot approve your own correction request — another Admin or Teacher needs to review it.']);
         }
 
         $date = $correction->attendanceRecord->attendance_date;
@@ -127,14 +127,14 @@ class AttendanceCorrectionController extends Controller
         if ($correction->requested_check_in_time) {
             AttendanceRecord::updateOrCreate(
                 ['student_id' => $correction->student_id, 'type' => 'check_in', 'attendance_date' => $date],
-                ['scanned_at' => Carbon::parse($date->toDateString() . ' ' . $correction->requested_check_in_time), 'recorded_by' => $request->user()->id]
+                ['scanned_at' => Carbon::parse($date->toDateString().' '.$correction->requested_check_in_time), 'recorded_by' => $request->user()->id]
             );
         }
 
         if ($correction->requested_check_out_time) {
             AttendanceRecord::updateOrCreate(
                 ['student_id' => $correction->student_id, 'type' => 'check_out', 'attendance_date' => $date],
-                ['scanned_at' => Carbon::parse($date->toDateString() . ' ' . $correction->requested_check_out_time), 'recorded_by' => $request->user()->id]
+                ['scanned_at' => Carbon::parse($date->toDateString().' '.$correction->requested_check_out_time), 'recorded_by' => $request->user()->id]
             );
         }
 
@@ -165,8 +165,8 @@ class AttendanceCorrectionController extends Controller
         }
 
         if ($correction->requested_by === $request->user()->id) {
-            return back()->withErrors(['status' => 'You cannot reject your own correction request — another admin or sub-admin needs to review it.']);
-        }        return view('attendance-corrections.create', compact('students'));
+            return back()->withErrors(['status' => 'You cannot reject your own correction request — another Admin or Teacher needs to review it.']);
+        }
 
         $validated = $request->validate([
             'admin_remarks' => ['required', 'string', 'max:1000'],
@@ -178,7 +178,7 @@ class AttendanceCorrectionController extends Controller
             'reviewed_by' => $request->user()->id,
             'reviewed_at' => now(),
         ]);
-        
+
         $correction->requestedBy?->notify(new AttendanceCorrectionReviewedNotification(
             $correction->student->full_name,
             'rejected',

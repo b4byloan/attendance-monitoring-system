@@ -9,14 +9,14 @@
     <div class="max-w-2xl mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Announcements</h1>
-            <a href="{{ route('parent.dashboard') }}" class="text-sm text-gray-500">← Back to dashboard</a>
+            <x-ui.back-button :href="route('parent.dashboard')" label="Back to dashboard" />
         </div>
 
         <div class="space-y-3">
             @forelse ($announcements as $a)
                 <div class="bg-white rounded-lg shadow p-4">
                     <div class="flex items-center gap-2">
-                        @if ($a->is_pinned)<span class="text-yellow-600 text-sm">📌</span>@endif
+                        @if ($a->is_pinned)<span class="text-yellow-600"><x-ui.icon name="pin" class="h-3.5 w-3.5" /></span>@endif
                         <h2 class="font-bold">{{ $a->title }}</h2>
                     </div>
                     <p class="text-xs text-gray-500 mt-1">

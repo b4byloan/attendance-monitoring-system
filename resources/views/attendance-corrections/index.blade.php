@@ -58,7 +58,7 @@
                 @if ($canReview && $c->status === 'pending')
                     <div class="mt-4 pt-4 border-t border-gray-100">
                         @if ($isOwnRequest)
-                            <p class="text-xs text-gray-400">You submitted this request — another admin or sub-admin needs to review it.</p>
+                            <p class="text-xs text-gray-400">You submitted this request — another Admin or Teacher needs to review it.</p>
                         @else
                             <div class="flex gap-3">
                                 <button type="button" onclick="document.getElementById('approve-modal-{{ $c->id }}').showModal()"
@@ -90,24 +90,22 @@
                 This updates {{ $c->student->full_name }}'s attendance record immediately, using the times requested above.
             </x-ui.confirm-modal>
 
-            <dialog id="reject-modal-{{ $c->id }}" class="rounded-lg shadow-xl p-0 w-full max-w-sm backdrop:bg-black/40">
-                <div class="p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Reject this correction?</h3>
-                    <p class="text-sm text-gray-600 mb-4">The original attendance record stays exactly as it is — nothing changes if you reject.</p>
-                    <form method="POST" action="{{ route('attendance-corrections.reject', $c) }}">
-                        @csrf
-                        @method('PATCH')
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Reason for rejecting</label>
-                        <textarea name="admin_remarks" rows="3" required
-                                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-                        <div class="flex justify-end gap-2">
-                            <button type="button" onclick="document.getElementById('reject-modal-{{ $c->id }}').close()"
-                                    class="px-4 py-2 text-sm rounded-lg border border-gray-300 hover:bg-gray-50">Cancel</button>
-                            <button type="submit" class="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700">Reject</button>
-                        </div>
-                    </form>
-                </div>
-            </dialog>
+            <x-ui.confirm-modal
+                id="reject-modal-{{ $c->id }}"
+                title="Reject this correction?"
+                form-action="{{ route('attendance-corrections.reject', $c) }}"
+                form-method="PATCH"
+                confirm-label="Yes, reject"
+                warning="Rejecting is final — this request cannot be reviewed again.">
+                The original attendance record stays exactly as it is — nothing else changes.
+                <x-slot:fields>
+                    <div>
+                        <label for="reject-remarks-{{ $c->id }}" class="block text-sm font-medium text-gray-700 mb-1">Reason for rejecting</label>
+                        <textarea id="reject-remarks-{{ $c->id }}" name="admin_remarks" rows="3" required
+                                  class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    </div>
+                </x-slot:fields>
+            </x-ui.confirm-modal>
         @endif
     @endforeach
 

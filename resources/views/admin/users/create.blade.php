@@ -1,6 +1,8 @@
 <x-layout title="Add User" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="max-w-xl mx-auto">
+        <x-ui.back-button :href="route('admin.users.index')" label="Back to users" class="mb-4" />
+
         <x-ui.card title="Add User">
             <form method="POST" action="{{ route('admin.users.store') }}" class="space-y-4">
                 @csrf
@@ -26,10 +28,9 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select name="role" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 @error('role') border-red-400 @enderror">
-                        <option value="admin" @selected(old('role') === 'admin')>Admin</option>
-                        <option value="sub_admin" @selected(old('role') === 'sub_admin')>Sub-Admin</option>
-                        <option value="guard" @selected(old('role') === 'guard')>Guard</option>
-                        <option value="parent" @selected(old('role') === 'parent')>Parent</option>
+                        @foreach (\App\Models\User::roleOptions() as $value => $label)
+                            <option value="{{ $value }}" @selected(old('role') === $value)>{{ $label }}</option>
+                        @endforeach
                     </select>
                     @error('role')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>

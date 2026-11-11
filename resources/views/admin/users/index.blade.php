@@ -19,10 +19,9 @@
                 <label class="block text-xs text-gray-500 mb-1">Role</label>
                 <select name="role" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="">All Roles</option>
-                    <option value="admin" @selected(request('role') === 'admin')>Admin</option>
-                    <option value="sub_admin" @selected(request('role') === 'sub_admin')>Sub-Admin</option>
-                    <option value="guard" @selected(request('role') === 'guard')>Guard</option>
-                    <option value="parent" @selected(request('role') === 'parent')>Parent</option>
+                    @foreach (\App\Models\User::roleOptions() as $value => $label)
+                        <option value="{{ $value }}" @selected(request('role') === $value)>{{ $label }}</option>
+                    @endforeach
                 </select>
             </div>
             <x-ui.button type="submit" variant="secondary">Search</x-ui.button>
@@ -50,7 +49,7 @@
                         <td class="px-4 py-3 font-medium">{{ $user->name }}</td>
                         <td class="px-4 py-3">{{ $user->email }}</td>
                         <td class="px-4 py-3">
-                            <x-ui.badge color="{{ $roleColors[$user->role] ?? 'gray' }}">{{ ucwords(str_replace('_', ' ', $user->role)) }}</x-ui.badge>
+                            <x-ui.badge color="{{ $roleColors[$user->role] ?? 'gray' }}">{{ $user->roleLabel() }}</x-ui.badge>
                         </td>
                         <td class="px-4 py-3">
                             <x-ui.badge color="{{ $user->is_active ? 'green' : 'gray' }}">{{ $user->is_active ? 'Active' : 'Inactive' }}</x-ui.badge>
@@ -59,11 +58,9 @@
                         <td class="px-4 py-3 space-x-2 text-sm whitespace-nowrap">
                             <a href="{{ route('admin.users.edit', $user) }}" class="text-indigo-600 hover:underline">Edit</a>
                             @if ($user->id !== auth()->id())
-                                <form method="POST" action="{{ route('admin.users.toggle-status', $user) }}" class="inline">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button class="text-amber-600 hover:underline">{{ $user->is_active ? 'Deactivate' : 'Activate' }}</button>
-                                </form>
+                                <button type="button" onclick="document.getElementById('status-modal-{{ $user->id }}').showModal()" class="text-amber-600 hover:underline">
+                                    {{ $user->is_active ? 'Deactivate' : 'Activate' }}
+                                </button>
                                 <button type="button" onclick="document.getElementById('delete-modal-{{ $user->id }}').showModal()" class="text-red-600 hover:underline">
                                     Delete
                                 </button>
@@ -88,12 +85,22 @@
     @foreach ($users as $user)
         @if ($user->id !== auth()->id())
             <x-ui.confirm-modal
+                id="status-modal-{{ $user->id }}"
+                title="{{ $user->is_active ? 'Deactivate' : 'Activate' }} {{ $user->name }}?"
+                form-action="{{ route('admin.users.toggle-status', $user) }}"
+                form-method="PATCH"
+                confirm-label="{{ $user->is_active ? 'Yes, deactivate' : 'Yes, activate' }}"
+                warning="{{ $user->is_active ? 'The account is blocked from signing in immediately. You can activate it again later.' : 'The account will be able to sign in again immediately.' }}">
+                This changes the account status right away.
+            </x-ui.confirm-modal>
+
+            <x-ui.confirm-modal
                 id="delete-modal-{{ $user->id }}"
                 title="Delete {{ $user->name }}?"
                 form-action="{{ route('admin.users.destroy', $user) }}"
                 form-method="DELETE"
                 confirm-label="Yes, delete">
-                This cannot be undone. If they're the last Admin account, this will be blocked automatically.
+                This permanently removes the account. If they're the last Admin account, this will be blocked automatically.
             </x-ui.confirm-modal>
         @endif
     @endforeach

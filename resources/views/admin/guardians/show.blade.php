@@ -1,6 +1,8 @@
 <x-layout title="Guardian Details" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="max-w-2xl mx-auto">
+        <x-ui.back-button :href="route('admin.guardians.index')" label="Back to guardians" class="mb-4" />
+
         <x-ui.card class="mb-6">
             <div class="flex flex-wrap justify-between items-start gap-3">
                 <div>
@@ -57,9 +59,13 @@
             <div class="space-y-2 mb-4">
                 @forelse ($guardian->students as $student)
                     <div class="flex justify-between items-center border border-gray-200 rounded-lg px-4 py-2.5 text-sm">
-                        <div>
-                            <span class="font-medium">{{ $student->full_name }}</span>
-                            <span class="text-gray-400"> — {{ $student->section->name ?? 'No section' }}</span>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <div>
+                                <span class="font-medium">{{ $student->full_name }}</span>
+                                <span class="text-gray-400"> — {{ $student->section->name ?? 'No section' }}</span>
+                            </div>
+                            <span class="font-mono text-xs text-gray-500">{{ $student->lrn }}</span>
+                            <x-ui.copy-button :value="$student->lrn" />
                         </div>
                         <button type="button" onclick="document.getElementById('unlink-modal-{{ $student->id }}').showModal()" class="text-red-600 hover:underline text-xs">
                             Unlink
@@ -88,7 +94,8 @@
             title="Unlink {{ $student->full_name }}?"
             form-action="{{ route('admin.guardians.students.unlink', [$guardian, $student]) }}"
             form-method="DELETE"
-            confirm-label="Yes, unlink">
+            confirm-label="Yes, unlink"
+            warning="This removes the link only — both records stay in the system and can be linked again.">
             This only removes the connection between this guardian and this student — neither record itself is deleted.
         </x-ui.confirm-modal>
     @endforeach

@@ -16,7 +16,7 @@ class TestUserSeeder extends Seeder
 
         User::firstOrCreate(
             ['email' => 'subadmin@test.com'],
-            ['name' => 'Test Sub-Admin', 'password' => bcrypt('password'), 'role' => 'sub_admin', 'is_active' => true]
+            ['name' => 'Test Teacher', 'password' => bcrypt('password'), 'role' => 'sub_admin', 'is_active' => true]
         );
 
         User::firstOrCreate(

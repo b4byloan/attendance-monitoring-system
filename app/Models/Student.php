@@ -22,11 +22,17 @@ class Student extends Model
         'qr_code',
         'photo_path',
         'status',
+        'user_id',
     ];
 
     public function section()
     {
         return $this->belongsTo(Section::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 
     public function guardians()

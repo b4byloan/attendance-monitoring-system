@@ -5,12 +5,12 @@
     <div class="max-w-xl mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-lg font-semibold text-gray-900">Log Details</h2>
-            <a href="{{ route('admin.audit-logs.index') }}" class="text-sm text-gray-500 hover:underline">← Back to logs</a>
+            <x-ui.back-button :href="route('admin.audit-logs.index')" label="Back to logs" />
         </div>
 
         <x-ui.card>
             <div class="mb-4">
-                <x-ui.badge :color="$color">{{ $icon }} {{ $log->action }}</x-ui.badge>
+                <x-ui.badge :color="$color" class="gap-1"><x-ui.icon :name="$icon" class="h-3 w-3" /> {{ $log->action }}</x-ui.badge>
             </div>
             <dl class="space-y-3 text-sm">
                 <div>

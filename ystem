@@ -1,0 +1,20 @@
+ app/Http/Controllers/Admin/QrCodeController.php    | 12 [32m+[m[31m--[m
+ app/Http/Controllers/Admin/StudentController.php   | 25 [32m++++++[m
+ app/Http/Controllers/Auth/LoginController.php      |  2 [32m+[m
+ app/Http/Controllers/StudentPortalController.php   | 98 [32m++++++++++++++++++++++[m
+ app/Models/Student.php                             |  6 [32m++[m
+ app/Models/User.php                                | 10 [32m+++[m
+ ...5_110000_add_role_and_status_to_users_table.php |  2 [32m+[m[31m-[m
+ ..._08_06_100001_add_user_id_to_students_table.php | 23 [32m+++++[m
+ ...2026_09_27_114040_fix_users_role_constraint.php | 62 [32m++++++++++++++[m
+ ...0_add_capacity_and_status_to_sections_table.php |  0
+ resources/views/admin/students/show.blade.php      | 22 [32m++++[m[31m-[m
+ resources/views/components/layout.blade.php        |  2 [32m+[m[31m-[m
+ resources/views/scanner/index.blade.php            | 56 [32m+++++++++++++[m
+ resources/views/student/account-setting.blade.php  | 49 [32m+++++++++++[m
+ resources/views/student/attendance.blade.php       | 53 [32m++++++++++++[m
+ resources/views/student/dashboard.blade.php        | 66 [32m+++++++++++++++[m
+ resources/views/student/no-account.blade.php       |  5 [32m++[m
+ resources/views/student/profile.blade.php          | 31 [32m+++++++[m
+ routes/web.php                                     | 12 [32m++[m[31m-[m
+ 19 files changed, 527 insertions(+), 9 deletions(-)

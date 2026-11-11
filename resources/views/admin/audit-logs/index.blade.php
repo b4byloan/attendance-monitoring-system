@@ -11,12 +11,8 @@
             </div>
             <div>
                 <label class="block text-xs text-gray-500 mb-1">User</label>
-                <select name="user_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="">All</option>
-                    @foreach ($users as $u)
-                        <option value="{{ $u->id }}" @selected(request('user_id') == $u->id)>{{ $u->name }}</option>
-                    @endforeach
-                </select>
+                <input type="text" name="user" value="{{ request('user') }}" placeholder="Search by name"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
             </div>
             <div>
                 <label class="block text-xs text-gray-500 mb-1">Action</label>
@@ -59,7 +55,7 @@
                         <td class="px-4 py-3 text-sm">{{ $log->user->name ?? 'System' }}</td>
                         <td class="px-4 py-3">
                             <a href="{{ route('admin.audit-logs.show', $log) }}">
-                                <x-ui.badge :color="$color">{{ $icon }} {{ $log->action }}</x-ui.badge>
+                                <x-ui.badge :color="$color" class="gap-1"><x-ui.icon :name="$icon" class="h-3 w-3" /> {{ $log->action }}</x-ui.badge>
                             </a>
                         </td>
                         <td class="px-4 py-3 text-sm max-w-xs truncate">{{ $log->description }}</td>

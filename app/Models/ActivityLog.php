@@ -9,7 +9,7 @@ class ActivityLog extends Model
 {
     use HasFactory;
 
-       protected $fillable = [
+    protected $fillable = [
         'user_id',
         'action',
         'description',
@@ -22,19 +22,20 @@ class ActivityLog extends Model
     {
         return $this->belongsTo(User::class);
     }
+
     public function actionStyle(): array
     {
         return match (true) {
-            str_contains($this->action, 'login') => ['indigo', '🔓'],
-            str_contains($this->action, 'logout') => ['gray', '🔒'],
-            str_ends_with($this->action, '_created') => ['green', '＋'],
-            str_ends_with($this->action, '_updated') => ['blue', '✎'],
-            str_ends_with($this->action, '_deleted') => ['red', '🗑'],
-            str_contains($this->action, 'approved') => ['green', '✓'],
-            str_contains($this->action, 'rejected') => ['red', '✕'],
-            str_contains($this->action, 'requested') => ['amber', '⚑'],
-            str_contains($this->action, 'downloaded') => ['blue', '⬇'],
-            default => ['gray', '•'],
+            str_contains($this->action, 'login') => ['indigo', 'unlock'],
+            str_contains($this->action, 'logout') => ['gray', 'lock'],
+            str_ends_with($this->action, '_created') => ['green', 'plus'],
+            str_ends_with($this->action, '_updated') => ['blue', 'pencil'],
+            str_ends_with($this->action, '_deleted') => ['red', 'trash'],
+            str_contains($this->action, 'approved') => ['green', 'check'],
+            str_contains($this->action, 'rejected') => ['red', 'x'],
+            str_contains($this->action, 'requested') => ['amber', 'flag'],
+            str_contains($this->action, 'downloaded') => ['blue', 'download'],
+            default => ['gray', 'circle'],
         };
     }
 

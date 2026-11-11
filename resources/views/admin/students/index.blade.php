@@ -2,7 +2,7 @@
 
     <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <h2 class="text-lg font-semibold text-gray-900">All Students</h2>
-        <x-ui.button href="{{ route('admin.students.create') }}">+ Add Student</x-ui.button>
+        <x-ui.button href="{{ route('admin.students.create') }}"><x-ui.icon name="plus" class="h-4 w-4" /> Add Student</x-ui.button>
     </div>
 
     <x-ui.card class="mb-6">
@@ -34,7 +34,12 @@
             <tbody class="divide-y">
                 @forelse ($students as $student)
                     <tr>
-                        <td class="px-4 py-3 font-mono text-xs">{{ $student->lrn }}</td>
+                        <td class="px-4 py-3">
+                            <span class="flex items-center gap-2">
+                                <span class="font-mono text-xs">{{ $student->lrn }}</span>
+                                <x-ui.copy-button :value="$student->lrn" />
+                            </span>
+                        </td>
                         <td class="px-4 py-3">{{ $student->full_name }}</td>
                         <td class="px-4 py-3">{{ $student->section->name ?? '—' }}</td>
                         <td class="px-4 py-3">
@@ -46,13 +51,9 @@
                             <a href="{{ route('admin.students.show', $student) }}" class="text-indigo-600 hover:underline">View</a>
                             <a href="{{ route('admin.students.edit', $student) }}" class="text-indigo-600 hover:underline">Edit</a>
                             <a href="{{ route('admin.students.qr-code.show', $student) }}" class="text-purple-600 hover:underline">QR</a>
-                            <form method="POST" action="{{ route('admin.students.toggle-status', $student) }}" class="inline">
-                                @csrf
-                                @method('PATCH')
-                                <button class="text-amber-600 hover:underline">
-                                    {{ $student->status === 'active' ? 'Deactivate' : 'Activate' }}
-                                </button>
-                            </form>
+                            <button type="button" onclick="document.getElementById('status-modal-{{ $student->id }}').showModal()" class="text-amber-600 hover:underline">
+                                {{ $student->status === 'active' ? 'Deactivate' : 'Activate' }}
+                            </button>
                             <button type="button" onclick="document.getElementById('delete-modal-{{ $student->id }}').showModal()" class="text-red-600 hover:underline">
                                 Delete
                             </button>
@@ -76,6 +77,16 @@
     <div class="mt-4">{{ $students->links() }}</div>
 
     @foreach ($students as $student)
+        <x-ui.confirm-modal
+            id="status-modal-{{ $student->id }}"
+            title="{{ $student->status === 'active' ? 'Deactivate' : 'Activate' }} {{ $student->full_name }}?"
+            form-action="{{ route('admin.students.toggle-status', $student) }}"
+            form-method="PATCH"
+            confirm-label="{{ $student->status === 'active' ? 'Yes, deactivate' : 'Yes, activate' }}"
+            warning="{{ $student->status === 'active' ? 'The student is skipped by the scanner until reactivated.' : 'The student becomes scannable again immediately.' }}">
+            This changes the student's status right away.
+        </x-ui.confirm-modal>
+
         <x-ui.confirm-modal
             id="delete-modal-{{ $student->id }}"
             title="Delete {{ $student->full_name }}?"

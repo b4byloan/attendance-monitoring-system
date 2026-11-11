@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\LoadsNotificationBell;
 use App\Http\Controllers\Controller;
 use App\Models\Section;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use App\Http\Controllers\Concerns\LoadsNotificationBell;
 
 class SectionController extends Controller
 {
     use LoadsNotificationBell;
+
     public function index(Request $request)
     {
         $query = Section::withCount('students')->with('adviser');
@@ -19,8 +20,8 @@ class SectionController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('grade_level', 'like', "%{$search}%")
-                  ->orWhere('school_year', 'like', "%{$search}%");
+                    ->orWhere('grade_level', 'like', "%{$search}%")
+                    ->orWhere('school_year', 'like', "%{$search}%");
             });
         }
 
@@ -112,7 +113,8 @@ class SectionController extends Controller
 
                     $user = User::find($value);
                     if (! $user || $user->role !== 'sub_admin') {
-                        $fail('The adviser must be a Sub-Admin account.');
+                        $fail('The adviser must be a Teacher account.');
+
                         return;
                     }
 
@@ -121,7 +123,7 @@ class SectionController extends Controller
                         ->exists();
 
                     if ($alreadyAdvising) {
-                        $fail('This Sub-Admin is already assigned as adviser to another section.');
+                        $fail('This Teacher is already assigned as adviser to another section.');
                     }
                 },
             ],

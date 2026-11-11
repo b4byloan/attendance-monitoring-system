@@ -56,11 +56,7 @@
                         <td class="px-4 py-3 space-x-2 text-sm whitespace-nowrap">
                             <a href="{{ route('admin.sections.show', $section) }}" class="text-indigo-600 hover:underline">View</a>
                             <a href="{{ route('admin.sections.edit', $section) }}" class="text-indigo-600 hover:underline">Edit</a>
-                            <form method="POST" action="{{ route('admin.sections.toggle-status', $section) }}" class="inline">
-                                @csrf
-                                @method('PATCH')
-                                <button class="text-amber-600 hover:underline">{{ $section->status === 'active' ? 'Deactivate' : 'Activate' }}</button>
-                            </form>
+                            <button type="button" onclick="document.getElementById('status-modal-{{ $section->id }}').showModal()" class="text-amber-600 hover:underline">{{ $section->status === 'active' ? 'Deactivate' : 'Activate' }}</button>
                         </td>
                     </tr>
                 @empty
@@ -79,5 +75,17 @@
     </x-ui.card>
 
     <div class="mt-4">{{ $sections->links() }}</div>
+
+    @foreach ($sections as $section)
+        <x-ui.confirm-modal
+            id="status-modal-{{ $section->id }}"
+            title="{{ $section->status === 'active' ? 'Deactivate' : 'Activate' }} {{ $section->name }}?"
+            form-action="{{ route('admin.sections.toggle-status', $section) }}"
+            form-method="PATCH"
+            confirm-label="{{ $section->status === 'active' ? 'Yes, deactivate' : 'Yes, activate' }}"
+            warning="{{ $section->status === 'active' ? 'Inactive sections are hidden from active lists until reactivated.' : 'The section becomes active again immediately.' }}">
+            This changes the section's status right away.
+        </x-ui.confirm-modal>
+    @endforeach
 
 </x-layout>

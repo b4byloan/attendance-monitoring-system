@@ -1,6 +1,8 @@
 <x-layout title="Edit Section" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="max-w-xl mx-auto">
+        <x-ui.back-button :href="route('admin.sections.show', $section)" label="Back to section" class="mb-4" />
+
         <x-ui.card title="Edit Section">
             <form method="POST" action="{{ route('admin.sections.update', $section) }}" class="space-y-4">
                 @csrf
@@ -30,7 +32,7 @@
                     @error('max_capacity')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Adviser (Sub-Admin)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Adviser (Teacher)</label>
                     <select name="adviser_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 @error('adviser_id') border-red-400 @enderror">
                         <option value="">— None —</option>
                         @foreach ($advisers as $adviser)

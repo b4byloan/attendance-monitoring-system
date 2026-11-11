@@ -10,7 +10,10 @@
 
     <a href="{{ route('scanner.index') }}"
        class="block w-full text-center bg-indigo-600 text-white text-2xl font-bold py-8 rounded-xl shadow-sm hover:bg-indigo-700 transition mb-6">
-        📷 Open Scanner
+        <span class="inline-flex items-center gap-3">
+            <x-ui.icon name="camera" class="h-7 w-7" />
+            Open Scanner
+        </span>
     </a>
 
     <div class="grid grid-cols-2 gap-4 mb-6">

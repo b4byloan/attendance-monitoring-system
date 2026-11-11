@@ -1,6 +1,8 @@
 <x-layout title="Edit Student" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="max-w-xl mx-auto">
+        <x-ui.back-button :href="route('admin.students.show', $student)" label="Back to student" class="mb-4" />
+
         <x-ui.card title="Edit Student">
             <form method="POST" action="{{ route('admin.students.update', $student) }}" class="space-y-4">
                 @csrf

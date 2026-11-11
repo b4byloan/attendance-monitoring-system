@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Concerns\LoadsNotificationBell;
 use App\Http\Controllers\Controller;
 use App\Models\Section;
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use App\Http\Controllers\Concerns\LoadsNotificationBell;
 
 class StudentController extends Controller
 {
     use LoadsNotificationBell;
+
     public function index(Request $request)
     {
         $query = Student::with('section');
@@ -19,9 +21,9 @@ class StudentController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('id', $search)
-                  ->orWhere('lrn', 'like', "%{$search}%")
-                  ->orWhere('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%");
+                    ->orWhere('lrn', 'like', "%{$search}%")
+                    ->orWhere('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%");
             });
         }
 
@@ -75,7 +77,7 @@ class StudentController extends Controller
     public function update(Request $request, Student $student)
     {
         $validated = $request->validate([
-            'lrn' => ['required', 'digits:12', 'unique:students,lrn,' . $student->id],
+            'lrn' => ['required', 'digits:12', 'unique:students,lrn,'.$student->id],
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
@@ -110,5 +112,29 @@ class StudentController extends Controller
         $student->delete();
 
         return redirect()->route('admin.students.index')->with('success', 'Student deleted.');
+    }
+
+    public function createAccount(Request $request, Student $student)
+    {
+        if ($student->user_id) {
+            return back()->withErrors(['account' => 'This student already has a portal account.']);
+        }
+
+        $validated = $request->validate([
+            'account_email' => ['required', 'email', 'unique:users,email'],
+            'account_password' => ['required', 'string', 'min:8'],
+        ]);
+
+        $user = User::create([
+            'name' => $student->full_name,
+            'email' => $validated['account_email'],
+            'password' => $validated['account_password'],
+            'role' => 'student',
+            'is_active' => true,
+        ]);
+
+        $student->update(['user_id' => $user->id]);
+
+        return back()->with('success', 'Student portal account created.');
     }
 }

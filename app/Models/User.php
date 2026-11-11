@@ -50,6 +50,23 @@ class User extends Authenticatable
         return $this->hasOne(Guardian::class);
     }
 
+    public function student()
+    {
+        return $this->hasOne(Student::class);
+    }
+
+    public function dashboardRoute(): string
+    {
+        return match ($this->role) {
+            'admin' => 'admin.dashboard',
+            'sub_admin' => 'sub-admin.dashboard',
+            'parent' => 'parent.dashboard',
+            'guard' => 'guard.dashboard',
+            'student' => 'student.dashboard',
+            default => 'login',
+        };
+    }
+
     public function isAdmin(): bool
     {
         return $this->role === 'admin';
@@ -68,5 +85,26 @@ class User extends Authenticatable
     public function isGuard(): bool
     {
         return $this->role === 'guard';
+    }
+
+    public function isStudent(): bool
+    {
+        return $this->role === 'student';
+    }
+
+    public function roleLabel(): string
+    {
+        return self::roleOptions()[$this->role] ?? ucwords(str_replace('_', ' ', (string) $this->role));
+    }
+
+    /** @return array<string, string> */
+    public static function roleOptions(): array
+    {
+        return [
+            'admin' => 'Admin',
+            'sub_admin' => 'Teacher',
+            'guard' => 'Guard',
+            'parent' => 'Parent',
+        ];
     }
 }

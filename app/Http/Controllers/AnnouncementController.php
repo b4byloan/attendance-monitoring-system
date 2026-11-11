@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LoadsNotificationBell;
 use App\Models\Announcement;
 use App\Models\Section;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Concerns\LoadsNotificationBell;
 
 class AnnouncementController extends Controller
 {
     use LoadsNotificationBell;
+
     public function index(Request $request)
     {
         $user = $request->user();
@@ -21,7 +22,11 @@ class AnnouncementController extends Controller
             });
         }
 
-        $announcements = $query->orderByDesc('is_pinned')->orderByDesc('publish_date')->paginate(20);
+        if ($search = $request->input('search')) {
+            $query->where('title', 'like', "%{$search}%");
+        }
+
+        $announcements = $query->orderByDesc('is_pinned')->orderByDesc('publish_date')->paginate(20)->withQueryString();
 
         return view('announcements.index', compact('announcements'))->with($this->notificationBellData());
     }

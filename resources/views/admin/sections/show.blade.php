@@ -1,6 +1,8 @@
 <x-layout title="Section Details" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="max-w-2xl mx-auto">
+        <x-ui.back-button :href="route('admin.sections.index')" label="Back to sections" class="mb-4" />
+
         <x-ui.card class="mb-6">
             <div class="flex flex-wrap justify-between items-start gap-3">
                 <div>

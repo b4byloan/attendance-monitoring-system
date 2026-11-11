@@ -3,20 +3,27 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class LoginController extends Controller
 {
-    public function create()
+    public function create(): View|RedirectResponse
     {
-        return view('auth.login');
+        if (Auth::check()) {
+            return redirect()->route(Auth::user()->dashboardRoute());
+        }
+
+        return view('auth.login', ['schoolSettings' => Setting::current()]);
     }
-    
+
     public function store(Request $request)
     {
-        
+
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required'],
@@ -27,7 +34,7 @@ class LoginController extends Controller
                 'email' => 'These credentials do not match our records.',
             ]);
         }
-        
+
         $user = Auth::user();
 
         if (! $user->is_active) {
@@ -40,7 +47,7 @@ class LoginController extends Controller
         $user->update(['last_login_at' => now()]);
         $request->session()->regenerate();
 
-        return redirect()->intended($this->redirectPathFor($user->role));
+        return redirect()->intended(route($user->dashboardRoute()));
     }
 
     public function destroy(Request $request)
@@ -51,16 +58,5 @@ class LoginController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/login');
-    }
-
-    private function redirectPathFor(string $role): string
-    {
-        return match ($role) {
-            'admin' => '/admin/dashboard',
-            'sub_admin' => '/sub-admin/dashboard',
-            'parent' => '/parent/dashboard',
-            'guard' => '/guard/dashboard',
-            default => '/login',
-        };
     }
 }

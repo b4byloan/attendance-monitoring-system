@@ -17,7 +17,7 @@
         @endphp
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Notifications</h1>
-            <a href="{{ $backRoute }}" class="text-sm text-gray-500">← Back to dashboard</a>
+            <x-ui.back-button :href="$backRoute" label="Back to dashboard" />
         </div>
 
         @if (session('success'))

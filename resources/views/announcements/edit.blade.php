@@ -1,6 +1,8 @@
 <x-layout title="Edit Announcement" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="max-w-xl mx-auto">
+        <x-ui.back-button :href="route('announcements.index')" label="Back to announcements" class="mb-4" />
+
         <x-ui.card title="Edit Announcement">
             <form method="POST" action="{{ route('announcements.update', $announcement) }}" class="space-y-4">
                 @csrf

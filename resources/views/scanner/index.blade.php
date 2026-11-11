@@ -1,5 +1,7 @@
 <x-simple-layout title="Scanner" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
+    <x-ui.back-button :href="route(auth()->user()->dashboardRoute())" label="Back to dashboard" class="mb-4" />
+
     <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
         <span id="connection-badge" class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-200 text-gray-700">Checking…</span>
         <div class="flex gap-4 text-sm text-gray-600">
@@ -8,6 +10,19 @@
         </div>
     </div>
     <div id="sync-status" class="text-xs text-gray-500 mb-4"></div>
+
+        <x-ui.card class="mb-4">
+        <div class="flex items-center gap-3">
+            <span class="text-2xl">🔌</span>
+            <div>
+                <p class="font-semibold text-gray-900">Physical Scanner Ready</p>
+                <p class="text-xs text-gray-500">Connect a USB or Bluetooth barcode scanner, then scan — no need to tap anything first.</p>
+            </div>
+        </div>
+        <input type="text" id="physical-scan-input"
+               inputmode="none" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
+               class="opacity-0 h-0 w-0 absolute overflow-hidden" aria-hidden="true" tabindex="-1">
+    </x-ui.card>
 
     <x-ui.card class="mb-4">
         <div id="reader" class="w-full"></div>
@@ -217,7 +232,50 @@
 
         new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 280, height: 280 } }, false).render(onScanSuccess, onScanFailure);
 
+        // ---------- Physical USB/Bluetooth scanner (HID keyboard emulation) ----------
+        // Both connection types "type" into whatever has focus, exactly like a real
+        // keyboard - no USB/Bluetooth API needed. This just watches a hidden, always-
+        // focused input for that fast burst of keystrokes and calls the exact same
+        // onScanSuccess() the camera already uses, so duplicate-prevention and
+        // everything downstream behaves identically either way.
+        const physicalInput = document.getElementById('physical-scan-input');
+        let physicalScanTimeout = null;
+
+        function submitPhysicalScan() {
+            const value = physicalInput.value.trim();
+            physicalInput.value = '';
+            if (value) {
+                onScanSuccess(value);
+            }
+        }
+
+        physicalInput.addEventListener('input', function () {
+            clearTimeout(physicalScanTimeout);
+            physicalScanTimeout = setTimeout(submitPhysicalScan, 100);
+        });
+
+        physicalInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(physicalScanTimeout);
+                submitPhysicalScan();
+            }
+        });
+
+        function refocusPhysicalInput() {
+            physicalInput.focus({ preventScroll: true });
+        }
+
+        refocusPhysicalInput();
+        document.addEventListener('click', function (e) {
+            if (!['INPUT', 'BUTTON', 'A', 'SELECT'].includes(e.target.tagName)) {
+                refocusPhysicalInput();
+            }
+        });
+
         async function verifyToken(token) {
+            document.getElementById('scan-result').innerHTML =
+                '<div class="bg-gray-400 text-white rounded-xl p-6 text-center"><p class="text-xl font-bold">Processing scan…</p></div>';
             if (navigator.onLine) {
                 try {
                     const response = await fetch("{{ route('scanner.verify') }}", {

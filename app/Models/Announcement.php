@@ -41,9 +41,13 @@ class Announcement extends Model
 
     public function scopeVisible($query)
     {
+        $today = now()->toDateString();
+
         return $query->where('status', 'published')
-            ->where(function ($q) {
-                $q->whereNull('expiration_date')->orWhere('expiration_date', '>=', now()->toDateString());
+            ->whereDate('publish_date', '<=', $today)
+            ->where(function ($query) use ($today) {
+                $query->whereNull('expiration_date')
+                    ->orWhereDate('expiration_date', '>=', $today);
             });
     }
 

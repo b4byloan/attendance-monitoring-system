@@ -21,6 +21,10 @@
             <div>
                 <h3 class="text-lg font-bold text-gray-900">{{ $student->full_name }}</h3>
                 <p class="text-sm text-gray-500">{{ $student->section->grade_level ?? '—' }} · {{ $student->section->name ?? 'No section' }}</p>
+                <div class="mt-1 flex flex-wrap items-center gap-2">
+                    <p class="text-sm text-gray-500">LRN: <span class="font-mono text-gray-700">{{ $student->lrn }}</span></p>
+                    <x-ui.copy-button :value="$student->lrn" />
+                </div>
             </div>
             @if ($todayCheckIn && $todayCheckOut)
                 <x-ui.badge color="green">Checked Out</x-ui.badge>
@@ -50,7 +54,7 @@
     <x-ui.card class="mb-6">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-base font-semibold text-gray-900">Recent Attendance</h3>
-            <a href="{{ route('parent.students.attendance', $student) }}" class="text-sm text-indigo-600 hover:underline">Full history →</a>
+            <a href="{{ route('parent.students.attendance', $student) }}" class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline">Full history <x-ui.icon name="arrow-right" class="h-3.5 w-3.5" /></a>
         </div>
         @forelse ($recent as $record)
             <div class="flex justify-between py-2.5 border-b border-gray-100 text-sm last:border-0">
@@ -65,14 +69,14 @@
     <x-ui.card title="Announcements">
         @forelse ($announcements as $a)
             <div class="py-2.5 border-b border-gray-100 text-sm last:border-0">
-                @if ($a->is_pinned)<span class="mr-1">📌</span>@endif
+                @if ($a->is_pinned)<x-ui.icon name="pin" class="mr-1 inline h-3.5 w-3.5 align-text-bottom text-amber-500" />@endif
                 <strong>{{ $a->title }}</strong>
                 <p class="text-gray-500 text-xs mt-0.5">{{ $a->publish_date->format('M j, Y') }}</p>
             </div>
         @empty
             <x-ui.empty-state message="No announcements right now." />
         @endforelse
-        <a href="{{ route('parent.announcements') }}" class="block mt-3 text-sm text-indigo-600 hover:underline">View all →</a>
+        <a href="{{ route('parent.announcements') }}" class="mt-3 inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline">View all <x-ui.icon name="arrow-right" class="h-3.5 w-3.5" /></a>
     </x-ui.card>
 
 </x-simple-layout>

@@ -1,6 +1,8 @@
 <x-layout title="Add Student" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="max-w-xl mx-auto">
+        <x-ui.back-button :href="route('admin.students.index')" label="Back to students" class="mb-4" />
+
         <x-ui.card title="Add Student">
             <form method="POST" action="{{ route('admin.students.store') }}" class="space-y-4">
                 @csrf

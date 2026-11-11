@@ -1,6 +1,8 @@
 <x-layout title="Student Details" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="max-w-2xl mx-auto">
+        <x-ui.back-button :href="route('admin.students.index')" label="Back to students" class="mb-4" />
+
         <x-ui.card class="mb-6">
             <div class="flex flex-wrap items-start justify-between gap-4">
                 <div class="flex items-center gap-4">
@@ -13,7 +15,10 @@
                     @endif
                     <div>
                         <h2 class="text-xl font-bold text-gray-900">{{ $student->full_name }}</h2>
-                        <p class="text-sm text-gray-500">LRN: {{ $student->lrn }}</p>
+                        <div class="mt-1 flex flex-wrap items-center gap-2">
+                            <p class="text-sm text-gray-500">LRN: <span class="font-mono text-gray-700">{{ $student->lrn }}</span></p>
+                            <x-ui.copy-button :value="$student->lrn" />
+                        </div>
                     </div>
                 </div>
                 <x-ui.badge color="{{ $student->status === 'active' ? 'green' : 'gray' }}">{{ ucfirst($student->status) }}</x-ui.badge>
@@ -45,10 +50,29 @@
                 <x-ui.empty-state message="No guardians linked yet." />
             @endforelse
         </x-ui.card>
-
+                <x-ui.card title="Student Portal Account" class="mb-6">
+            @if ($student->user)
+                <p class="text-sm">Linked to <strong>{{ $student->user->email }}</strong>
+                    — <x-ui.badge color="{{ $student->user->is_active ? 'green' : 'gray' }}">{{ $student->user->is_active ? 'Active' : 'Inactive' }}</x-ui.badge>
+                </p>
+            @else
+                <p class="text-sm text-gray-500 mb-3">No portal account yet — this student can't log in to the Student Portal.</p>
+                <form method="POST" action="{{ route('admin.students.create-account', $student) }}" class="flex flex-wrap gap-2 items-end">
+                    @csrf
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Login email</label>
+                        <input type="email" name="account_email" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs text-gray-500 mb-1">Initial password</label>
+                        <input type="password" name="account_password" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                    </div>
+                    <x-ui.button type="submit" size="sm">Create Account</x-ui.button>
+                </form>
+            @endif
+        </x-ui.card>
         <div class="flex gap-2">
             <x-ui.button href="{{ route('admin.students.edit', $student) }}">Edit Student</x-ui.button>
-            <x-ui.button variant="secondary" href="{{ route('admin.students.index') }}">Back to List</x-ui.button>
         </div>
     </div>
 

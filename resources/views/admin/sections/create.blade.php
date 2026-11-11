@@ -1,6 +1,8 @@
 <x-layout title="Add Section" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="max-w-xl mx-auto">
+        <x-ui.back-button :href="route('admin.sections.index')" label="Back to sections" class="mb-4" />
+
         <x-ui.card title="Add Section">
             <form method="POST" action="{{ route('admin.sections.store') }}" class="space-y-4">
                 @csrf
@@ -29,7 +31,7 @@
                     @error('max_capacity')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Adviser (Sub-Admin)</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Adviser (Teacher)</label>
                     <select name="adviser_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 @error('adviser_id') border-red-400 @enderror">
                         <option value="">— None yet —</option>
                         @foreach ($advisers as $adviser)
@@ -38,7 +40,7 @@
                     </select>
                     @error('adviser_id')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
                     @if ($advisers->isEmpty())
-                        <p class="text-xs text-gray-500 mt-1">No Sub-Admin accounts exist yet — create one in User Management first.</p>
+                        <p class="text-xs text-gray-500 mt-1">No Teacher accounts exist yet — create one in User Management first.</p>
                     @endif
                 </div>
                 <div class="flex gap-2 pt-2">

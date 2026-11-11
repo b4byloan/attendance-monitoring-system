@@ -1,6 +1,8 @@
 <x-layout title="Edit Guardian" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="max-w-xl mx-auto">
+        <x-ui.back-button :href="route('admin.guardians.show', $guardian)" label="Back to guardian" class="mb-4" />
+
         <x-ui.card title="Edit Guardian">
             <form method="POST" action="{{ route('admin.guardians.update', $guardian) }}" class="space-y-4">
                 @csrf

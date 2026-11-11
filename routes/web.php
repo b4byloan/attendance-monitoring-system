@@ -1,35 +1,43 @@
 <?php
 
-use App\Http\Controllers\Admin\StudentController;
-use App\Http\Controllers\Auth\LoginController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\QrCodeController;
-use App\Http\Controllers\ScannerController;
-use App\Http\Controllers\ParentPortalController;
-use App\Http\Controllers\Admin\ReportController;
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\GuardController;
-use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Admin\GuardianController;
-use App\Http\Controllers\AnnouncementController;
-use App\Http\Controllers\Admin\SettingController;
-use App\Models\Setting;
-use App\Http\Controllers\AttendanceCorrectionController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BackupController;
-use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DesignPreviewController;
-use App\Http\Controllers\SubAdminController;
+use App\Http\Controllers\Admin\GuardianController;
+use App\Http\Controllers\Admin\QrCodeController;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SectionController;
+use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\AttendanceCorrectionController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegistrationController;
+use App\Http\Controllers\GuardController;
+use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\ParentPortalController;
+use App\Http\Controllers\PublicAnnouncementController;
+use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\StudentPortalController;
+use App\Http\Controllers\SubAdminController;
+use App\Http\Controllers\WelcomeController;
+use App\Models\Setting;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome', ['schoolSettings' => Setting::current()]);
-});
+Route::get('/', WelcomeController::class)->name('home');
+Route::get('/school-announcements', PublicAnnouncementController::class)->name('public-announcements.index');
+Route::get('/school-history', fn () => view('school-history', ['schoolSettings' => Setting::current()]))->name('school-history');
+Route::get('/teachers', fn () => view('teachers', ['schoolSettings' => Setting::current()]))->name('teachers');
+
+Route::get('/login', [LoginController::class, 'create'])->name('login');
+Route::get('/register', [RegistrationController::class, 'create'])->name('register');
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [LoginController::class, 'create'])->name('login');
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:5,1');
+    Route::post('/register', [RegistrationController::class, 'store'])->middleware('throttle:5,1');
+    Route::post('/register/student', [RegistrationController::class, 'storeStudent'])->name('register.student')->middleware('throttle:5,1');
 });
 
 Route::middleware('auth')->group(function () {
@@ -71,12 +79,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/design-preview', [DesignPreviewController::class, 'index'])->name('design-preview');
         Route::resource('sections', SectionController::class);
         Route::patch('/sections/{section}/toggle-status', [SectionController::class, 'toggleStatus'])->name('sections.toggle-status');
-                Route::post('/students/{student}/create-account', [StudentController::class, 'createAccount'])->name('students.create-account');
-        });
+        Route::post('/students/{student}/create-account', [StudentController::class, 'createAccount'])->name('students.create-account');
+    });
 
     Route::middleware('role:sub_admin')->prefix('sub-admin')->name('sub-admin.')->group(function () {
-    Route::get('/dashboard', [SubAdminController::class, 'dashboard'])->name('dashboard');
-});
+        Route::get('/dashboard', [SubAdminController::class, 'dashboard'])->name('dashboard');
+    });
 
     Route::middleware('role:parent')->prefix('parent')->name('parent.')->group(function () {
         Route::get('/dashboard', [ParentPortalController::class, 'index'])->name('dashboard');
@@ -88,8 +96,8 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:guard')->prefix('guard')->name('guard.')->group(function () {
         Route::get('/dashboard', [GuardController::class, 'dashboard'])->name('dashboard');
     });
-    
-        Route::middleware('role:admin,sub_admin')->prefix('announcements')->name('announcements.')->group(function () {
+
+    Route::middleware('role:admin,sub_admin')->prefix('announcements')->name('announcements.')->group(function () {
         Route::get('/', [AnnouncementController::class, 'index'])->name('index');
         Route::get('/create', [AnnouncementController::class, 'create'])->name('create');
         Route::post('/', [AnnouncementController::class, 'store'])->name('store');
@@ -99,7 +107,7 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{announcement}/toggle-pin', [AnnouncementController::class, 'togglePin'])->name('toggle-pin');
     });
 
-        Route::middleware('role:admin,sub_admin,guard')->prefix('attendance-corrections')->name('attendance-corrections.')->group(function () {
+    Route::middleware('role:admin,sub_admin,guard')->prefix('attendance-corrections')->name('attendance-corrections.')->group(function () {
         Route::get('/', [AttendanceCorrectionController::class, 'index'])->name('index');
         Route::get('/create', [AttendanceCorrectionController::class, 'create'])->name('create');
         Route::get('/create/{attendanceRecord}', [AttendanceCorrectionController::class, 'createForRecord'])->name('create-for-record');
@@ -110,17 +118,17 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{correction}/approve', [AttendanceCorrectionController::class, 'approve'])->name('approve');
         Route::patch('/{correction}/reject', [AttendanceCorrectionController::class, 'reject'])->name('reject');
     });
-        Route::prefix('notifications')->name('notifications.')->group(function () {
+    Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
         Route::get('/{id}/read', [NotificationController::class, 'readAndRedirect'])->name('read');
         Route::post('/mark-all-read', [NotificationController::class, 'markAllRead'])->name('mark-all-read');
     });
 });
 
-    Route::middleware('role:student')->prefix('student')->name('student.')->group(function () {
-        Route::get('/dashboard', [StudentPortalController::class, 'dashboard'])->name('dashboard');
-        Route::get('/attendance', [StudentPortalController::class, 'attendance'])->name('attendance');
-        Route::get('/profile', [StudentPortalController::class, 'profile'])->name('profile');
-        Route::get('/account-settings', [StudentPortalController::class, 'accountSettings'])->name('account-settings');
-        Route::put('/account-settings', [StudentPortalController::class, 'updateAccount'])->name('account-settings.update');
-    });
+Route::middleware('role:student')->prefix('student')->name('student.')->group(function () {
+    Route::get('/dashboard', [StudentPortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('/attendance', [StudentPortalController::class, 'attendance'])->name('attendance');
+    Route::get('/profile', [StudentPortalController::class, 'profile'])->name('profile');
+    Route::get('/account-settings', [StudentPortalController::class, 'accountSettings'])->name('account-settings');
+    Route::put('/account-settings', [StudentPortalController::class, 'updateAccount'])->name('account-settings.update');
+});

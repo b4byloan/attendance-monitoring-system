@@ -1,5 +1,5 @@
 <x-layout
-    title="Admin Dashboard"
+    title="Teacher Dashboard"
     :unread-count="$unreadCount ?? 0"
     :recent-notifications="$recentNotifications ?? collect()"
 >
@@ -40,14 +40,14 @@
             <x-ui.card title="Latest Announcements">
                 @forelse ($latestAnnouncements as $a)
                     <div class="py-2 border-b border-gray-100 text-sm last:border-0">
-                        @if ($a->is_pinned)<span class="mr-1">📌</span>@endif
+                        @if ($a->is_pinned)<x-ui.icon name="pin" class="mr-1 inline h-3.5 w-3.5 align-text-bottom text-amber-500" />@endif
                         <strong>{{ $a->title }}</strong>
                         <span class="text-gray-400"> — {{ $a->publish_date->format('M j') }}</span>
                     </div>
                 @empty
                     <x-ui.empty-state message="No announcements yet." />
                 @endforelse
-                <a href="{{ route('announcements.index') }}" class="block mt-3 text-sm text-indigo-600 hover:underline">View all →</a>
+                <a href="{{ route('announcements.index') }}" class="mt-3 inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline">View all <x-ui.icon name="arrow-right" class="h-3.5 w-3.5" /></a>
             </x-ui.card>
 
             <x-ui.card title="Recent Attendance Activity">

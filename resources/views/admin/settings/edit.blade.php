@@ -126,7 +126,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">QR Expiration (days)</label>
                     <input type="number" name="qr_expiration_days" value="{{ old('qr_expiration_days', $settings->qr_expiration_days) }}" min="1" placeholder="Never"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <p class="text-xs text-amber-600 mt-1">⚠ Not yet enforced</p>
+                    <p class="mt-1 flex items-center gap-1 text-xs text-amber-600"><x-ui.icon name="alert-triangle" class="h-3.5 w-3.5" /> Not yet enforced</p>
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">QR Format</label>
@@ -138,7 +138,7 @@
                     <label class="block text-sm font-medium text-gray-700 mb-1">Default QR Size (px)</label>
                     <input type="number" name="qr_default_size" value="{{ old('qr_default_size', $settings->qr_default_size) }}" min="100" max="1000"
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <p class="text-xs text-green-700 mt-1">✓ Fully active</p>
+                    <p class="mt-1 flex items-center gap-1 text-xs text-green-700"><x-ui.icon name="circle-check" class="h-3.5 w-3.5" /> Fully active</p>
                 </div>
             </div>
         </x-ui.card>
@@ -160,7 +160,11 @@
             <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
                 <p class="text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
-                    {{ $apiKeyConfigured ? '✓ Configured (in .env)' : '✗ Not configured' }}
+                    @if ($apiKeyConfigured)
+                        <span class="inline-flex items-center gap-1 text-green-700"><x-ui.icon name="circle-check" class="h-4 w-4" /> Configured (in .env)</span>
+                    @else
+                        <span class="inline-flex items-center gap-1 text-red-600"><x-ui.icon name="x" class="h-4 w-4" /> Not configured</span>
+                    @endif
                 </p>
                 <p class="text-xs text-gray-500 mt-1">Never edited here — set <code>SEMAPHORE_API_KEY</code> directly in your project's <code>.env</code> file.</p>
             </div>

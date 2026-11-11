@@ -1,6 +1,8 @@
 <x-layout title="New Correction Request" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="max-w-2xl mx-auto">
+        <x-ui.back-button :href="route('attendance-corrections.index')" label="Back to corrections" class="mb-4" />
+
         <h2 class="text-lg font-semibold text-gray-900 mb-6">New Correction Request</h2>
 
         <x-ui.card class="mb-6">

@@ -68,31 +68,15 @@
             This permanently removes {{ $backup['filename'] }}. This cannot be undone.
         </x-ui.confirm-modal>
 
-        <dialog id="restore-modal-{{ $loop->index }}" class="rounded-lg shadow-xl p-0 w-full max-w-md backdrop:bg-black/40">
-            <div class="p-6">
-                <h3 class="text-lg font-bold text-red-700 mb-2">⚠ Restore this backup?</h3>
-                <p class="text-sm text-gray-600 mb-2">
-                    This replaces <strong>all current data</strong> with what's in this backup, from
-                    {{ $backup['created_at']->format('M j, Y h:i A') }}. Anything added or changed since then
-                    will no longer be in the live system.
-                </p>
-                <p class="text-sm text-gray-600 mb-4">
-                    A fresh safety backup of your <em>current</em> data is taken automatically first, so this isn't permanent even if something goes wrong.
-                </p>
-                <form method="POST" action="{{ route('admin.backups.restore', $backup['filename']) }}"
-                      onsubmit="return this.querySelector('[name=confirmation]').value === 'RESTORE';">
-                    @csrf
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Type <strong>RESTORE</strong> to confirm</label>
-                    <input type="text" name="confirmation" placeholder="RESTORE"
-                           class="w-full border border-red-300 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:ring-2 focus:ring-red-500">
-                    <div class="flex justify-end gap-2">
-                        <button type="button" onclick="document.getElementById('restore-modal-{{ $loop->index }}').close()"
-                                class="px-4 py-2 text-sm rounded-lg border border-gray-300 hover:bg-gray-50">Cancel</button>
-                        <button type="submit" class="px-4 py-2 text-sm rounded-lg bg-red-700 text-white hover:bg-red-800">Restore Now</button>
-                    </div>
-                </form>
-            </div>
-        </dialog>
+        <x-ui.confirm-modal
+            id="restore-modal-{{ $loop->index }}"
+            title="Restore this backup?"
+            form-action="{{ route('admin.backups.restore', $backup['filename']) }}"
+            confirm-label="Restore Now"
+            confirm-phrase="RESTORE"
+            warning="All current data is replaced by the backup from {{ $backup['created_at']->format('M j, Y h:i A') }}.">
+            Anything added or changed since then will no longer be in the live system. A fresh safety backup of the current data is taken automatically first.
+        </x-ui.confirm-modal>
     @endforeach
 
 </x-layout>

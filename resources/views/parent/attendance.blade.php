@@ -9,9 +9,7 @@
     <div class="max-w-3xl mx-auto">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Attendance History</h1>
-            <a href="{{ route('parent.students.dashboard', $student) }}" class="text-sm text-gray-500 hover:underline">
-                ← Back to dashboard
-            </a>
+            <x-ui.back-button :href="route('parent.students.dashboard', $student)" label="Back to dashboard" />
         </div>
 
         @if ($students->count() > 1)

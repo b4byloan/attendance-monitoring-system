@@ -39,11 +39,11 @@
     <x-ui.card class="mb-6">
         <div class="flex justify-between items-center mb-4">
             <h3 class="text-base font-semibold text-gray-900">Latest Announcements</h3>
-            <a href="{{ route('announcements.index') }}" class="text-sm text-indigo-600 hover:underline">View all →</a>
+            <a href="{{ route('announcements.index') }}" class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline">View all <x-ui.icon name="arrow-right" class="h-3.5 w-3.5" /></a>
         </div>
         @forelse (($latestAnnouncements ?? collect()) as $a)
             <div class="py-2 border-b border-gray-100 text-sm last:border-0">
-                @if ($a->is_pinned)<span class="mr-1">📌</span>@endif
+                @if ($a->is_pinned)<x-ui.icon name="pin" class="mr-1 inline h-3.5 w-3.5 align-text-bottom text-amber-500" />@endif
                 <strong>{{ $a->title }}</strong>
                 <span class="text-gray-400"> — {{ $a->publish_date->format('M j') }}</span>
             </div>
