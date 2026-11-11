@@ -62,7 +62,7 @@ class StudentController extends Controller
 
     public function show(Student $student)
     {
-        $student->load('section', 'guardians', 'attendanceRecords');
+        $student->load('section.adviser', 'guardians', 'attendanceRecords');
 
         return view('admin.students.show', compact('student'))->with($this->notificationBellData());
     }

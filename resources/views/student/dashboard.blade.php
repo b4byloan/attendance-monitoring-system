@@ -63,7 +63,7 @@
 
     <div class="flex gap-4 text-sm">
         <a href="{{ route('student.profile') }}" class="text-indigo-600 hover:underline">My Profile</a>
-        <a href="{{ route('student.account-settings') }}" class="text-indigo-600 hover:underline">Account Settings</a>
+        <a href="{{ route('account-settings.edit') }}" class="text-indigo-600 hover:underline">Account Settings</a>
     </div>
 
 </x-simple-layout>

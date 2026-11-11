@@ -19,15 +19,7 @@
             School System
         </span>
         <div class="flex items-center gap-4">
-            @include('partials.notification-bell', ['unreadCount' => $unreadCount, 'recentNotifications' => $recentNotifications ?? collect()])
-            <span class="hidden text-sm text-gray-600 sm:inline">{{ auth()->user()->name }}</span>
-            <form method="POST" action="{{ route('logout') }}">
-                @csrf
-                <x-ui.button type="submit" variant="secondary" size="sm">
-                    <x-ui.icon name="log-out" class="h-4 w-4" />
-                    Log out
-                </x-ui.button>
-            </form>
+            <x-ui.account-menu :unread-count="$unreadCount ?? 0" :recent-notifications="$recentNotifications ?? collect()" />
         </div>
     </header>
 

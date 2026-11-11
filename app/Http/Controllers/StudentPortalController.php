@@ -67,30 +67,4 @@ class StudentPortalController extends Controller
 
         return view('student.profile', compact('student'))->with($this->notificationBellData());
     }
-
-    public function accountSettings(Request $request)
-    {
-        return view('student.account-settings')->with($this->notificationBellData());
-    }
-
-    public function updateAccount(Request $request)
-    {
-        $user = $request->user();
-
-        $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'current_password' => ['required_with:new_password', 'current_password'],
-            'new_password' => ['nullable', 'string', 'min:8'],
-        ]);
-
-        $user->name = $validated['name'];
-
-        if (! empty($validated['new_password'])) {
-            $user->password = $validated['new_password'];
-        }
-
-        $user->save();
-
-        return back()->with('success', 'Account updated.');
-    }
 }

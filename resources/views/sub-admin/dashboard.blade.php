@@ -4,39 +4,66 @@
     :recent-notifications="$recentNotifications ?? collect()"
 >
 
-    @if (! $section)
+    @if ($sections->isEmpty())
         <x-ui.card>
             <x-ui.empty-state message="You haven't been assigned as adviser to any section yet — contact your admin." />
         </x-ui.card>
     @else
-        <x-ui.card class="mb-6">
-            <div class="flex flex-wrap justify-between items-start gap-2">
-                <div>
-                    <h2 class="text-xl font-bold text-gray-900">{{ $section->name }}</h2>
-                    <p class="text-sm text-gray-500">{{ $section->grade_level }} · {{ $section->school_year }}</p>
-                </div>
-                <x-ui.badge color="{{ $section->status === 'active' ? 'green' : 'gray' }}">{{ ucfirst($section->status) }}</x-ui.badge>
-            </div>
-        </x-ui.card>
-
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <x-ui.card>
                 <p class="text-xs text-gray-500 uppercase tracking-wide">Total Students</p>
-                <p class="text-3xl font-bold text-gray-900 mt-1">{{ $students->count() }}{{ $section->max_capacity ? ' / ' . $section->max_capacity : '' }}</p>
+                <p class="text-3xl font-bold text-gray-900 mt-1">{{ $totalStudents }}</p>
             </x-ui.card>
             <x-ui.card>
                 <p class="text-xs text-gray-500 uppercase tracking-wide">Present Today</p>
                 <p class="text-3xl font-bold text-green-700 mt-1">{{ $presentTodayCount }}</p>
             </x-ui.card>
             <a href="{{ route('attendance-corrections.index') }}" class="block">
-                <x-ui.card class="hover:border-indigo-300 transition">
+                <x-ui.card class="hover:border-emerald-300 transition">
                     <p class="text-xs text-gray-500 uppercase tracking-wide">My Pending Correction Requests</p>
                     <p class="text-3xl font-bold {{ $pendingCorrections > 0 ? 'text-amber-600' : 'text-gray-900' }} mt-1">{{ $pendingCorrections }}</p>
                 </x-ui.card>
             </a>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <h2 class="text-base font-semibold text-gray-900">My Sections</h2>
+            <a href="{{ route('sub-admin.roster.index') }}" class="inline-flex items-center gap-1 text-sm text-emerald-700 hover:underline">
+                My Roster <x-ui.icon name="arrow-right" class="h-3.5 w-3.5" />
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
+            @foreach ($sections as $section)
+                <x-ui.card class="flex flex-col">
+                    <div class="flex flex-wrap justify-between items-start gap-2">
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900">{{ $section->name }}</h3>
+                            <p class="text-sm text-gray-500">{{ $section->grade_level }} · {{ $section->school_year }}</p>
+                        </div>
+                        <x-ui.badge color="{{ $section->status === 'active' ? 'green' : 'gray' }}">{{ ucfirst($section->status) }}</x-ui.badge>
+                    </div>
+
+                    <div class="mt-4 grid grid-cols-2 gap-3">
+                        <div class="rounded-lg bg-gray-50 p-3">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Total Students</p>
+                            <p class="mt-1 text-2xl font-bold text-gray-900">{{ $section->students_count }}</p>
+                        </div>
+                        <div class="rounded-lg bg-green-50 p-3">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Present Today</p>
+                            <p class="mt-1 text-2xl font-bold text-green-700">{{ $section->present_today }}</p>
+                        </div>
+                    </div>
+
+                    <a href="{{ route('sub-admin.sections.students', $section) }}"
+                       class="mt-4 inline-flex items-center justify-center gap-1 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1">
+                        View <x-ui.icon name="arrow-right" class="h-4 w-4" />
+                    </a>
+                </x-ui.card>
+            @endforeach
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <x-ui.card title="Latest Announcements">
                 @forelse ($latestAnnouncements as $a)
                     <div class="py-2 border-b border-gray-100 text-sm last:border-0">
@@ -47,7 +74,7 @@
                 @empty
                     <x-ui.empty-state message="No announcements yet." />
                 @endforelse
-                <a href="{{ route('announcements.index') }}" class="mt-3 inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline">View all <x-ui.icon name="arrow-right" class="h-3.5 w-3.5" /></a>
+                <a href="{{ route('announcements.index') }}" class="mt-3 inline-flex items-center gap-1 text-sm text-emerald-700 hover:underline">View all <x-ui.icon name="arrow-right" class="h-3.5 w-3.5" /></a>
             </x-ui.card>
 
             <x-ui.card title="Recent Attendance Activity">
@@ -61,39 +88,6 @@
                 @endforelse
             </x-ui.card>
         </div>
-
-        <x-ui.card title="My Section Roster">
-            <x-ui.table>
-                <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
-                    <tr>
-                        <th class="px-4 py-3 text-left">Name</th>
-                        <th class="px-4 py-3 text-left">Status</th>
-                        <th class="px-4 py-3 text-left">Today</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y">
-                    @forelse ($students as $student)
-                        <tr>
-                            <td class="px-4 py-3">{{ $student->full_name }}</td>
-                            <td class="px-4 py-3">
-                                <x-ui.badge color="{{ $student->status === 'active' ? 'green' : 'gray' }}">{{ ucfirst($student->status) }}</x-ui.badge>
-                            </td>
-                            <td class="px-4 py-3">
-                                @if ($student->today_status === 'checked_out')
-                                    <x-ui.badge color="green">Checked Out</x-ui.badge>
-                                @elseif ($student->today_status === 'checked_in')
-                                    <x-ui.badge color="blue">Checked In</x-ui.badge>
-                                @else
-                                    <x-ui.badge color="gray">Not Yet</x-ui.badge>
-                                @endif
-                            </td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="3"><x-ui.empty-state message="No students assigned to this section yet." /></td></tr>
-                    @endforelse
-                </tbody>
-            </x-ui.table>
-        </x-ui.card>
     @endif
 
 </x-layout>

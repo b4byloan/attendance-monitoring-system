@@ -30,6 +30,7 @@
                 <dl class="space-y-2 text-sm">
                     <div class="flex justify-between"><dt class="text-gray-500">Section</dt><dd class="font-medium">{{ $student->section->name ?? '—' }}</dd></div>
                     <div class="flex justify-between"><dt class="text-gray-500">Grade Level</dt><dd class="font-medium">{{ $student->section->grade_level ?? '—' }}</dd></div>
+                    <div class="flex justify-between"><dt class="text-gray-500">Current Teacher</dt><dd class="font-medium">{{ $student->section->adviser->name ?? '—' }}</dd></div>
                     <div class="flex justify-between"><dt class="text-gray-500">Attendance Records</dt><dd class="font-medium">{{ $student->attendanceRecords->count() }}</dd></div>
                 </dl>
             </x-ui.card>

@@ -31,7 +31,7 @@
         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div><dt class="text-gray-500 text-xs uppercase">Login Email</dt><dd class="font-medium mt-0.5">{{ auth()->user()->email }}</dd></div>
         </dl>
-        <a href="{{ route('student.account-settings') }}" class="mt-4 inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline">Edit account settings <x-ui.icon name="arrow-right" class="h-3.5 w-3.5" /></a>
+        <a href="{{ route('account-settings.edit') }}" class="mt-4 inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline">Edit account settings <x-ui.icon name="arrow-right" class="h-3.5 w-3.5" /></a>
     </x-ui.card>
 
 </x-simple-layout>

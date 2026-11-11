@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AccountSettingsController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\BackupController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\PublicAnnouncementController;
 use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\StudentPortalController;
 use App\Http\Controllers\SubAdminController;
+use App\Http\Controllers\SubAdminStudentController;
 use App\Http\Controllers\WelcomeController;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Route;
@@ -42,6 +44,8 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+    Route::get('/account-settings', [AccountSettingsController::class, 'edit'])->name('account-settings.edit');
+    Route::put('/account-settings', [AccountSettingsController::class, 'update'])->name('account-settings.update');
     Route::middleware('role:admin,sub_admin,guard')->prefix('scanner')->name('scanner.')->group(function () {
         Route::get('/', [ScannerController::class, 'index'])->name('index');
         Route::post('/verify', [ScannerController::class, 'verify'])->name('verify');
@@ -84,6 +88,10 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:sub_admin')->prefix('sub-admin')->name('sub-admin.')->group(function () {
         Route::get('/dashboard', [SubAdminController::class, 'dashboard'])->name('dashboard');
+        Route::get('/students', [SubAdminStudentController::class, 'index'])->name('students.index');
+        Route::get('/students/{student}', [SubAdminStudentController::class, 'show'])->name('students.show');
+        Route::get('/sections/{section}/students', [SubAdminStudentController::class, 'section'])->name('sections.students');
+        Route::get('/roster', [SubAdminStudentController::class, 'roster'])->name('roster.index');
     });
 
     Route::middleware('role:parent')->prefix('parent')->name('parent.')->group(function () {
@@ -129,6 +137,4 @@ Route::middleware('role:student')->prefix('student')->name('student.')->group(fu
     Route::get('/dashboard', [StudentPortalController::class, 'dashboard'])->name('dashboard');
     Route::get('/attendance', [StudentPortalController::class, 'attendance'])->name('attendance');
     Route::get('/profile', [StudentPortalController::class, 'profile'])->name('profile');
-    Route::get('/account-settings', [StudentPortalController::class, 'accountSettings'])->name('account-settings');
-    Route::put('/account-settings', [StudentPortalController::class, 'updateAccount'])->name('account-settings.update');
 });

@@ -1,11 +1,5 @@
 <x-layout title="School Settings" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    <div class="flex gap-4 mb-6 text-sm">
-        <span class="font-medium text-indigo-700">School Settings</span>
-        <span class="text-gray-300">|</span>
-        <a href="{{ route('admin.backups.index') }}" class="text-gray-500 hover:text-indigo-600">Backup &amp; Restore</a>
-    </div>
-
     <h2 class="text-lg font-semibold text-gray-900 mb-6">School Settings</h2>
 
     @if (session('success'))
@@ -157,7 +151,7 @@
                            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
             </div>
-            <div class="mb-4">
+            {{-- <div class="mb-4">
                 <label class="block text-sm font-medium text-gray-700 mb-1">API Key</label>
                 <p class="text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
                     @if ($apiKeyConfigured)
@@ -167,7 +161,7 @@
                     @endif
                 </p>
                 <p class="text-xs text-gray-500 mt-1">Never edited here — set <code>SEMAPHORE_API_KEY</code> directly in your project's <code>.env</code> file.</p>
-            </div>
+            </div> --}}
             <label class="flex items-center text-sm gap-2">
                 <input type="checkbox" name="sms_enabled" value="1" @checked(old('sms_enabled', $settings->sms_enabled)) class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                 Enable SMS notifications

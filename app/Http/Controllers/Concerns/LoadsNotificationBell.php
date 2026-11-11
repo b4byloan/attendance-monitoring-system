@@ -10,7 +10,7 @@ trait LoadsNotificationBell
 
         return [
             'unreadCount' => $user->unreadNotifications()->count(),
-            'recentNotifications' => $user->notifications()->limit(8)->get(),
+            'recentNotifications' => $user->notifications()->limit(5)->get(),
         ];
     }
 }

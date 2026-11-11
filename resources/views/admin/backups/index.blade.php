@@ -1,11 +1,5 @@
 <x-layout title="Backup & Restore" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    <div class="flex gap-4 mb-6 text-sm">
-        <a href="{{ route('admin.settings.edit') }}" class="text-gray-500 hover:text-indigo-600">School Settings</a>
-        <span class="text-gray-300">|</span>
-        <span class="font-medium text-indigo-700">Backup &amp; Restore</span>
-    </div>
-
     <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <h2 class="text-lg font-semibold text-gray-900">Backups</h2>
         <form method="POST" action="{{ route('admin.backups.store') }}">

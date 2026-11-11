@@ -79,6 +79,13 @@
                                 ['label' => 'Dashboard', 'route' => 'sub-admin.dashboard', 'icon' => 'dashboard'],
                             ],
                         ],
+                        'Students' => [
+                            'icon' => 'graduation-cap',
+                            'items' => [
+                                ['label' => 'Student Information', 'route' => 'sub-admin.students.index', 'icon' => 'graduation-cap'],
+                                ['label' => 'My Roster', 'route' => 'sub-admin.roster.index', 'icon' => 'users'],
+                            ],
+                        ],
                         'Attendance' => [
                             'icon' => 'scan-line',
                             'items' => [
@@ -123,6 +130,27 @@
                         ],
                     ],
                 };
+
+                $currentRoute = request()->route()?->getName() ?? '';
+                $breadcrumbs = [];
+
+                if ($currentRoute !== '' && ! str_ends_with($currentRoute, '.dashboard')) {
+                    foreach ($navGroups as $groupName => $group) {
+                        foreach ($group['items'] as $item) {
+                            $resourcePrefix = str_ends_with($item['route'], '.index')
+                                ? substr($item['route'], 0, -strlen('index'))
+                                : null;
+
+                            if ($currentRoute === $item['route'] || ($resourcePrefix !== null && str_starts_with($currentRoute, $resourcePrefix))) {
+                                $breadcrumbs = [
+                                    ['label' => $groupName, 'url' => null],
+                                    ['label' => $item['label'], 'url' => $currentRoute === $item['route'] ? null : route($item['route'])],
+                                ];
+                                break 2;
+                            }
+                        }
+                    }
+                }
             @endphp
 
             @foreach ($navGroups as $groupName => $group)
@@ -162,22 +190,13 @@
                 <h1 class="text-lg font-semibold text-gray-900">{{ $title }}</h1>
             </div>
             <div class="flex items-center gap-4">
-                @include('partials.notification-bell', ['unreadCount' => $unreadCount, 'recentNotifications' => $recentNotifications ?? collect()])
-                <div class="hidden text-right sm:block">
-                    <p class="text-sm font-medium text-gray-900">{{ $user->name }}</p>
-                    <p class="text-xs text-gray-500">{{ $user->roleLabel() }}</p>
-                </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <x-ui.button type="submit" variant="secondary" size="sm">
-                        <x-ui.icon name="log-out" class="h-4 w-4" />
-                        Log out
-                    </x-ui.button>
-                </form>
+                <x-ui.account-menu :unread-count="$unreadCount ?? 0" :recent-notifications="$recentNotifications ?? collect()" />
             </div>
         </header>
 
         <main class="flex-1 overflow-y-auto p-4 lg:p-8">
+            <x-ui.breadcrumb :items="$breadcrumbs" />
+
             @if (session('success'))
                 <x-ui.alert type="success">{{ session('success') }}</x-ui.alert>
             @endif
