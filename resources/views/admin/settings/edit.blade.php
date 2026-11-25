@@ -2,17 +2,6 @@
 
     <h2 class="text-lg font-semibold text-gray-900 mb-6">School Settings</h2>
 
-    @if (session('success'))
-        <x-ui.alert type="success">{{ session('success') }}</x-ui.alert>
-    @endif
-    @if ($errors->any())
-        <x-ui.alert type="error">
-            <ul class="list-disc pl-5">
-                @foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach
-            </ul>
-        </x-ui.alert>
-    @endif
-
     <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="space-y-6">
         @csrf
         @method('PUT')
@@ -22,8 +11,13 @@
                 <img src="{{ asset('storage/' . $settings->school_logo_path) }}" class="h-16 mb-3 rounded">
             @endif
             <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">School Logo</label>
-                <input type="file" name="logo" accept="image/*" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                <label for="school-logo" class="block text-sm font-medium text-gray-700 mb-1">School Logo</label>
+                <input id="school-logo" type="file" name="logo" accept=".jpg,.jpeg,.png,.gif,.bmp,.webp"
+                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm @error('logo') border-red-400 @enderror">
+                <p class="mt-1 text-xs text-gray-500">Allowed formats: JPG, JPEG, PNG, GIF, BMP, WebP. Maximum size: 10 MB.</p>
+                @error('logo')
+                    <p class="mt-1 text-sm text-red-600" role="alert">{{ $message }}</p>
+                @enderror
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
@@ -33,8 +27,20 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Academic Year</label>
-                    <input type="text" name="academic_year" value="{{ old('academic_year', $settings->academic_year) }}"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label for="academic-year-start" class="block text-xs text-gray-500 mb-1">Start year</label>
+                            <input id="academic-year-start" type="number" name="academic_year_start" value="{{ old('academic_year_start', $academicYearStart) }}" min="1000" max="9999" step="1" required
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            @error('academic_year_start')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="academic-year-end" class="block text-xs text-gray-500 mb-1">End year</label>
+                            <input id="academic-year-end" type="number" name="academic_year_end" value="{{ old('academic_year_end', $academicYearEnd) }}" min="1000" max="9999" step="1" required
+                                   class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            @error('academic_year_end')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
+                        </div>
+                    </div>
                 </div>
             </div>
             <div class="mb-4">
@@ -82,9 +88,9 @@
         </x-ui.card>
 
         <x-ui.card title="Attendance Settings">
-            <x-ui.alert type="warning">
+            <x-ui.notice type="warning">
                 Not yet enforced. These values save correctly, but the Scanner doesn't check them yet — no cutoff blocking, no "late" flag anywhere in the system.
-            </x-ui.alert>
+            </x-ui.notice>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Check-in Start</label>

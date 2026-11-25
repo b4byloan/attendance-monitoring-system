@@ -90,15 +90,15 @@
     </div>
 
     @if (! is_null($didNotCheckIn))
-        <x-ui.alert type="warning">
+        <x-ui.notice type="warning">
             <strong>{{ $didNotCheckIn }}</strong> enrolled student(s) matching these filters have no check-in on this date.
             This is a raw gap, not a verified absence — it can't tell an absence from a non-school day.
-        </x-ui.alert>
+        </x-ui.notice>
     @endif
 
-    <x-ui.alert type="warning">
+    <x-ui.notice type="warning">
         "Absent" and "Late" columns aren't shown — both need a school calendar/schedule that doesn't exist in the system yet.
-    </x-ui.alert>
+    </x-ui.notice>
 
     <x-ui.card>
         <x-ui.table>

@@ -1,12 +1,12 @@
 <x-layout
-    :title="$activeSection ? $activeSection->name.' Students' : 'Student Information'"
+    :title="$activeSection ? $activeSection->name.' Students' : 'Student Attendance'"
     :unread-count="$unreadCount ?? 0"
     :recent-notifications="$recentNotifications ?? collect()"
 >
 
     <div class="mb-6">
         @if ($activeSection)
-            <x-ui.back-button :href="route('sub-admin.roster.index')" label="Back to my roster" class="mb-3" />
+            <x-ui.back-button :href="route('sub-admin.roster.index')" label="Back to Student List" class="mb-3" />
             <div class="flex flex-wrap items-center gap-2">
                 <h2 class="text-xl font-bold text-gray-900">{{ $activeSection->name }}</h2>
                 <x-ui.badge color="green">Read-only</x-ui.badge>
@@ -16,7 +16,7 @@
             </p>
         @else
             <div class="flex flex-wrap items-center gap-2">
-                <h2 class="text-xl font-bold text-gray-900">Student Information</h2>
+                <h2 class="text-xl font-bold text-gray-900">Student Attendance</h2>
                 <x-ui.badge color="green">Read-only</x-ui.badge>
             </div>
             <p class="text-sm text-gray-500">Students enrolled in your assigned sections.</p>
@@ -33,6 +33,17 @@
                        placeholder="Search by LRN, name, or ID"
                        class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
             </div>
+            @if (! $activeSection && $sections->isNotEmpty())
+                <div class="min-w-[180px]">
+                    <label for="section-filter" class="mb-1 block text-xs text-gray-500">Section</label>
+                    <select id="section-filter" name="section" class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">All my sections</option>
+                        @foreach ($sections as $section)
+                            <option value="{{ $section->id }}" @selected($selectedSectionId === $section->id)>{{ $section->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
             <x-ui.button type="submit" variant="secondary">Search</x-ui.button>
             @if ($search !== '')
                 <a href="{{ $activeSection ? route('sub-admin.sections.students', $activeSection) : route('sub-admin.students.index') }}"

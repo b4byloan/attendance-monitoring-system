@@ -1,6 +1,6 @@
 <x-layout title="Design Preview" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    <x-ui.alert type="info">This page exists purely to preview the new shared design system before it's applied anywhere real. Safe to delete later, or keep as a living style guide.</x-ui.alert>
+    <x-ui.notice type="info">This page exists purely to preview the new shared design system before it's applied anywhere real. Safe to delete later, or keep as a living style guide.</x-ui.notice>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <x-ui.card title="Buttons">
@@ -28,12 +28,23 @@
         </x-ui.card>
     </div>
 
-    <x-ui.card title="Alerts" class="mb-8">
+    <x-ui.card title="Toasts" class="mb-8">
+        <p class="mb-3 text-sm text-gray-500">Transient feedback appears in the top-right corner and dismisses itself. Flash messages and validation errors are delivered this way automatically.</p>
+        <div class="flex flex-wrap gap-2">
+            <x-ui.button type="button" variant="secondary" onclick="window.showToast('success', 'Saved successfully.')">Success toast</x-ui.button>
+            <x-ui.button type="button" variant="secondary" onclick="window.showToast('error', 'Something went wrong.')">Error toast</x-ui.button>
+            <x-ui.button type="button" variant="secondary" onclick="window.showToast('warning', 'This action needs your attention.')">Warning toast</x-ui.button>
+            <x-ui.button type="button" variant="secondary" onclick="window.showToast('info', 'Just a heads up.')">Info toast</x-ui.button>
+        </div>
+    </x-ui.card>
+
+    <x-ui.card title="Notices" class="mb-8">
+        <p class="mb-3 text-sm text-gray-500">Persistent, in-page callouts for context that must stay visible while the page is open.</p>
         <div class="space-y-2">
-            <x-ui.alert type="success">Saved successfully.</x-ui.alert>
-            <x-ui.alert type="error">Something went wrong.</x-ui.alert>
-            <x-ui.alert type="warning">This action needs your attention.</x-ui.alert>
-            <x-ui.alert type="info">Just a heads up.</x-ui.alert>
+            <x-ui.notice type="success">Saved successfully.</x-ui.notice>
+            <x-ui.notice type="error">Something went wrong.</x-ui.notice>
+            <x-ui.notice type="warning">This action needs your attention.</x-ui.notice>
+            <x-ui.notice type="info">Just a heads up.</x-ui.notice>
         </div>
     </x-ui.card>
 

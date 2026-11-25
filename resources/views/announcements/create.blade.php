@@ -19,7 +19,7 @@
                     @error('description')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
 
-                @if ($lockedSection === null)
+                @if ($allowSchoolWide)
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Audience</label>
                         <select name="section_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -29,10 +29,20 @@
                             @endforeach
                         </select>
                     </div>
+                @elseif ($lockedSection)
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Audience</label>
+                        <p class="text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">{{ $lockedSection->name }} only</p>
+                    </div>
                 @else
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Audience</label>
-                        <p class="text-sm bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">{{ $lockedSection->name }} only — you can only post to your own section.</p>
+                        <select name="section_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            @foreach ($sections as $section)
+                                <option value="{{ $section->id }}" @selected(old('section_id') == $section->id)>{{ $section->name }} only</option>
+                            @endforeach
+                        </select>
+                        <p class="mt-1 text-xs text-gray-500">You can post to any of your assigned sections.</p>
                     </div>
                 @endif
 

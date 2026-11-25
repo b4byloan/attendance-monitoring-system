@@ -17,29 +17,26 @@
         </x-ui.card>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-            <x-ui.card title="Adviser">
-                @if ($section->adviser)
-                    <p class="font-medium text-gray-900">{{ $section->adviser->name }}</p>
-                    <p class="text-sm text-gray-500">{{ $section->adviser->email }}</p>
-                @else
-                    <x-ui.empty-state message="No adviser assigned yet." />
-                @endif
+            <x-ui.card title="Assigned Teachers">
+                @forelse ($section->teachers as $teacher)
+                    <div class="border-b border-gray-100 py-2 text-sm last:border-0">
+                        <p class="font-medium text-gray-900">{{ $teacher->name }}</p>
+                        <p class="text-xs text-gray-500">{{ $teacher->email }} · {{ $teacher->roleLabel() }}</p>
+                    </div>
+                @empty
+                    <x-ui.empty-state message="No teacher assigned yet." />
+                @endforelse
             </x-ui.card>
 
             <x-ui.card title="Enrollment">
                 <p class="text-2xl font-bold text-gray-900">
-                    {{ $section->students->count() }}{{ $section->max_capacity ? ' / ' . $section->max_capacity : '' }}
+                    {{ $students->total() }}{{ $section->max_capacity ? ' / ' . $section->max_capacity : '' }}
                 </p>
-                @if ($section->max_capacity)
-                    <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-2">
-                        <div class="h-full bg-indigo-600" style="width: {{ min(100, round($section->students->count() / $section->max_capacity * 100)) }}%"></div>
-                    </div>
-                @endif
             </x-ui.card>
         </div>
 
-        <x-ui.card title="Students in this Section ({{ $section->students->count() }})" class="mb-6">
-            @forelse ($section->students as $student)
+        <x-ui.card title="Students in this Section ({{ $students->total() }})" class="mb-6">
+            @forelse ($students as $student)
                 <div class="flex justify-between items-center py-2.5 border-b border-gray-100 text-sm last:border-0">
                     <span>{{ $student->full_name }}</span>
                     <div class="flex items-center gap-2">
@@ -52,6 +49,8 @@
             @endforelse
         </x-ui.card>
 
+        <div class="mb-6">{{ $students->links() }}</div>
+
         <button type="button" onclick="document.getElementById('delete-section-modal').showModal()" class="text-red-600 text-sm hover:underline">
             Delete Section
         </button>
@@ -63,8 +62,8 @@
         form-action="{{ route('admin.sections.destroy', $section) }}"
         form-method="DELETE"
         confirm-label="Yes, delete">
-        @if ($section->students->count() > 0)
-            This section still has {{ $section->students->count() }} student(s) assigned. This delete will be blocked — reassign or deactivate them first, or deactivate this section instead.
+        @if ($students->total() > 0)
+            This section still has {{ $students->total() }} student(s) assigned. This delete will be blocked — reassign or deactivate them first, or deactivate this section instead.
         @else
             This section has no students assigned, so this is safe to delete.
         @endif

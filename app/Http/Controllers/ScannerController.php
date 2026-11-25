@@ -2,31 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AttendanceRecord;
-use App\Models\Student;
-use Illuminate\Http\Request;
-use App\Jobs\SendAttendanceSms;
-use App\Models\SmsNotification;
 use App\Http\Controllers\Concerns\LoadsNotificationBell;
+use App\Jobs\SendAttendanceSms;
+use App\Models\AttendanceRecord;
+use App\Models\Setting;
+use App\Models\SmsNotification;
+use App\Models\Student;
+use App\Services\AttendanceNotifier;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\Request;
 
 class ScannerController extends Controller
 {
     use LoadsNotificationBell;
+
     public function index()
     {
         return view('scanner.index')->with($this->notificationBellData());
     }
 
-    public function verify(Request $request)
+    public function verify(Request $request, AttendanceNotifier $notifier)
     {
-        
+
         $validated = $request->validate([
             'token' => ['required', 'string', 'max:255'],
         ]);
 
-        $student = Student::with('section')
-            ->where('qr_code', $validated['token'])
-            ->first();
+        $student = Student::findByQrCode($validated['token'])?->loadMissing('section');
 
         if (! $student) {
             return response()->json(['found' => false]);
@@ -37,7 +39,7 @@ class ScannerController extends Controller
             'lrn' => $student->lrn,
             'section' => $student->section?->name,
             'status' => $student->status,
-            'photo_url' => $student->photo_path ? asset('storage/' . $student->photo_path) : null,
+            'photo_url' => $student->photo_path ? asset('storage/'.$student->photo_path) : null,
         ];
         if ($student->status !== 'active') {
             return response()->json([
@@ -78,7 +80,6 @@ class ScannerController extends Controller
         }
 
         $type = $hasCheckIn ? 'check_out' : 'check_in';
-        
 
         try {
             $record = AttendanceRecord::create([
@@ -89,7 +90,7 @@ class ScannerController extends Controller
                 'scanned_at' => now(),
                 'attendance_date' => $today,
             ]);
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             // Final safety net - the unique constraint on
             // (student_id, type, attendance_date) blocks a genuine
             // duplicate even if two scans land at nearly the same instant.
@@ -100,9 +101,17 @@ class ScannerController extends Controller
                 'student' => $studentInfo,
             ]);
         }
-            
+
         $this->dispatchAttendanceSms($record, $student);
-        
+
+        $notifier->notifyGuardians($student, [
+            'date' => $record->attendance_date->format('F j, Y'),
+            'time' => $record->scanned_at->format('h:i A'),
+            'subject' => null,
+            'status' => $type === 'check_in' ? 'Checked In' : 'Checked Out',
+            'recorded_by' => $request->user()->name,
+        ]);
+
         return response()->json([
             'found' => true,
             'active' => true,
@@ -110,9 +119,9 @@ class ScannerController extends Controller
             'time' => $record->scanned_at->format('h:i A'),
             'student' => $studentInfo,
         ]);
-        
-           
-    } 
+
+    }
+
     public function directory()
     {
         $students = Student::with('section')->get()->map(fn ($s) => [
@@ -124,13 +133,15 @@ class ScannerController extends Controller
 
         return response()->json($students);
     }
-        private function hasRecentScan(int $studentId): bool
+
+    private function hasRecentScan(int $studentId): bool
     {
         return AttendanceRecord::where('student_id', $studentId)
             ->where('scanned_at', '>=', now()->subMinutes(2))
             ->exists();
     }
-    public function sync(Request $request)
+
+    public function sync(Request $request, AttendanceNotifier $notifier)
     {
         $validated = $request->validate([
             'qr_code' => ['required', 'string'],
@@ -138,7 +149,7 @@ class ScannerController extends Controller
             'attendance_date' => ['required', 'date'],
         ]);
 
-        $student = Student::where('qr_code', $validated['qr_code'])->first();
+        $student = Student::findByQrCode($validated['qr_code']);
 
         if (! $student) {
             return response()->json(['status' => 'error', 'message' => 'Student not found.']);
@@ -178,7 +189,7 @@ class ScannerController extends Controller
                 'attendance_date' => $validated['attendance_date'],
                 'synced_at' => now(),
             ]);
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             // The unique constraint caught a race we missed above -
             // e.g. two devices syncing the same student seconds apart.
             return response()->json(['status' => 'duplicate']);
@@ -186,19 +197,29 @@ class ScannerController extends Controller
 
         $this->dispatchAttendanceSms($record, $student);
 
+        $notifier->notifyGuardians($student, [
+            'date' => $record->attendance_date->format('F j, Y'),
+            'time' => $record->scanned_at->format('h:i A'),
+            'subject' => null,
+            'status' => $type === 'check_in' ? 'Checked In' : 'Checked Out',
+            'recorded_by' => $request->user()->name,
+        ]);
+
         return response()->json(['status' => 'synced', 'type' => $type]);
     }
-    
-     private function dispatchAttendanceSms($record, Student $student): void
+
+    private function dispatchAttendanceSms($record, Student $student): void
     {
-        if (! \App\Models\Setting::current()->sms_enabled) {
+        if (! Setting::current()->sms_enabled) {
             $record->update(['sms_status' => 'not_applicable']);
+
             return;
         }
         $guardians = $student->guardians->where('status', 'active');
 
         if ($guardians->isEmpty()) {
             $record->update(['sms_status' => 'not_applicable']);
+
             return;
         }
 
@@ -217,5 +238,4 @@ class ScannerController extends Controller
             SendAttendanceSms::dispatch($notification);
         }
     }
-    
 }

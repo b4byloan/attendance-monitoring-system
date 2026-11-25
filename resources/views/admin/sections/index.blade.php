@@ -27,7 +27,7 @@
                     <th class="px-4 py-3 text-left">Name</th>
                     <th class="px-4 py-3 text-left">Grade Level</th>
                     <th class="px-4 py-3 text-left">School Year</th>
-                    <th class="px-4 py-3 text-left">Adviser</th>
+                    <th class="px-4 py-3 text-left">Teachers</th>
                     <th class="px-4 py-3 text-left">Students</th>
                     <th class="px-4 py-3 text-left">Status</th>
                     <th class="px-4 py-3 text-left">Actions</th>
@@ -39,16 +39,9 @@
                         <td class="px-4 py-3 font-medium">{{ $section->name }}</td>
                         <td class="px-4 py-3">{{ $section->grade_level }}</td>
                         <td class="px-4 py-3">{{ $section->school_year }}</td>
-                        <td class="px-4 py-3">{{ $section->adviser->name ?? '— Unassigned' }}</td>
+                        <td class="px-4 py-3">{{ $section->teachers->pluck('name')->join(', ') ?: '— Unassigned' }}</td>
                         <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <span>{{ $section->students_count }}{{ $section->max_capacity ? ' / ' . $section->max_capacity : '' }}</span>
-                                @if ($section->max_capacity)
-                                    <div class="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                        <div class="h-full bg-indigo-600" style="width: {{ min(100, round($section->students_count / $section->max_capacity * 100)) }}%"></div>
-                                    </div>
-                                @endif
-                            </div>
+                            {{ $section->students_count }}{{ $section->max_capacity ? ' / ' . $section->max_capacity : '' }}
                         </td>
                         <td class="px-4 py-3">
                             <x-ui.badge color="{{ $section->status === 'active' ? 'green' : 'gray' }}">{{ ucfirst($section->status) }}</x-ui.badge>

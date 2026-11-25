@@ -35,7 +35,7 @@ class ReportController extends Controller
         $records = (clone $baseRecords)
             ->orderByDesc('attendance_date')
             ->orderByDesc('scanned_at')
-            ->paginate(25)
+            ->paginate(10)
             ->withQueryString();
 
         $sections = Section::orderBy('name')->get();
@@ -54,7 +54,7 @@ class ReportController extends Controller
 
         $pdf = Pdf::loadView('admin.reports.pdf', compact('records'));
 
-        return $pdf->download('attendance-report-' . now()->format('Y-m-d') . '.pdf');
+        return $pdf->download('attendance-report-'.now()->format('Y-m-d').'.pdf');
     }
 
     public function exportExcel(Request $request)
@@ -63,7 +63,7 @@ class ReportController extends Controller
 
         return Excel::download(
             new AttendanceExport($records),
-            'attendance-report-' . now()->format('Y-m-d') . '.xlsx'
+            'attendance-report-'.now()->format('Y-m-d').'.xlsx'
         );
     }
 
@@ -73,7 +73,7 @@ class ReportController extends Controller
 
         return Excel::download(
             new AttendanceExport($records),
-            'attendance-report-' . now()->format('Y-m-d') . '.csv'
+            'attendance-report-'.now()->format('Y-m-d').'.csv'
         );
     }
 
@@ -117,8 +117,8 @@ class ReportController extends Controller
             $search = $request->search;
             $studentsQuery->where(function ($q) use ($search) {
                 $q->where('lrn', 'like', "%{$search}%")
-                  ->orWhere('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%");
+                    ->orWhere('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%");
             });
         }
 
@@ -135,12 +135,14 @@ class ReportController extends Controller
             [$year, $week] = explode('-W', $request->week);
             $start = Carbon::now()->setISODate((int) $year, (int) $week, 1);
             $end = (clone $start)->addDays(6);
+
             return [$start->toDateString(), $end->toDateString()];
         }
 
         if ($request->filled('month')) {
-            $start = Carbon::parse($request->month . '-01')->startOfMonth();
+            $start = Carbon::parse($request->month.'-01')->startOfMonth();
             $end = (clone $start)->endOfMonth();
+
             return [$start->toDateString(), $end->toDateString()];
         }
 

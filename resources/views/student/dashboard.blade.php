@@ -22,6 +22,12 @@
             <div><dt class="text-gray-500 text-xs uppercase">Grade Level</dt><dd class="font-medium mt-0.5">{{ $student->section->grade_level ?? '—' }}</dd></div>
             <div><dt class="text-gray-500 text-xs uppercase">Section</dt><dd class="font-medium mt-0.5">{{ $student->section->name ?? '—' }}</dd></div>
             <div><dt class="text-gray-500 text-xs uppercase">Adviser</dt><dd class="font-medium mt-0.5">{{ $student->section->adviser->name ?? '—' }}</dd></div>
+            <div>
+                <dt class="text-gray-500 text-xs uppercase">Your QR</dt>
+                <dd class="font-medium mt-0.5">
+                    <button type="button" onclick="document.getElementById('student-qr-dialog').showModal()" class="text-indigo-600 hover:underline">View</button>
+                </dd>
+            </div>
         </dl>
     </x-ui.card>
 
@@ -61,9 +67,27 @@
         @endforelse
     </x-ui.card>
 
-    <div class="flex gap-4 text-sm">
-        <a href="{{ route('student.profile') }}" class="text-indigo-600 hover:underline">My Profile</a>
-        <a href="{{ route('account-settings.edit') }}" class="text-indigo-600 hover:underline">Account Settings</a>
+    <div class="flex flex-wrap gap-4 text-sm">
+        <a href="{{ route('student.link-requests.index') }}" class="text-indigo-600 hover:underline">
+            Guardian link requests
+            @if ($pendingLinkRequests > 0)
+                <span class="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">{{ $pendingLinkRequests }}</span>
+            @endif
+        </a>
     </div>
+
+    <dialog id="student-qr-dialog" class="w-full max-w-sm rounded-xl p-0 shadow-xl backdrop:bg-black/40">
+        <div class="p-6 text-center">
+            <h3 class="text-lg font-bold text-gray-900">{{ $student->full_name }}</h3>
+            <p class="mt-1 text-sm text-gray-500">LRN: {{ $student->lrn }}</p>
+            <img src="{{ $qrDataUri }}" alt="QR code for {{ $student->full_name }}" class="mx-auto my-5 w-full max-w-[260px]">
+            <div class="flex justify-center gap-2">
+                <x-ui.button href="{{ route('student.qr-code.download') }}">
+                    <x-ui.icon name="download" class="h-4 w-4" /> Download QR
+                </x-ui.button>
+                <x-ui.button type="button" variant="secondary" onclick="document.getElementById('student-qr-dialog').close()">Close</x-ui.button>
+            </div>
+        </div>
+    </dialog>
 
 </x-simple-layout>

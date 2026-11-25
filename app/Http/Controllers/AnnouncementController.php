@@ -26,7 +26,7 @@ class AnnouncementController extends Controller
             $query->where('title', 'like', "%{$search}%");
         }
 
-        $announcements = $query->orderByDesc('is_pinned')->orderByDesc('publish_date')->paginate(20)->withQueryString();
+        $announcements = $query->orderByDesc('is_pinned')->orderByDesc('publish_date')->paginate(10)->withQueryString();
 
         return view('announcements.index', compact('announcements'))->with($this->notificationBellData());
     }
@@ -39,17 +39,22 @@ class AnnouncementController extends Controller
             return view('announcements.create', [
                 'sections' => Section::orderBy('name')->get(),
                 'lockedSection' => null,
+                'allowSchoolWide' => true,
             ])->with($this->notificationBellData());
         }
 
-        $mySection = Section::where('adviser_id', $user->id)->first();
+        $mySections = $user->sections()->orderBy('name')->get();
 
-        if (! $mySection) {
+        if ($mySections->isEmpty()) {
             return redirect()->route('announcements.index')
-                ->withErrors(['section' => 'You are not assigned as adviser to any section yet, so you cannot create announcements.']);
+                ->withErrors(['section' => 'You are not assigned to any section yet, so you cannot create announcements.']);
         }
 
-        return view('announcements.create', ['sections' => collect([$mySection]), 'lockedSection' => $mySection])->with($this->notificationBellData());
+        return view('announcements.create', [
+            'sections' => $mySections,
+            'lockedSection' => $mySections->count() === 1 ? $mySections->first() : null,
+            'allowSchoolWide' => false,
+        ])->with($this->notificationBellData());
     }
 
     public function store(Request $request)
@@ -73,13 +78,13 @@ class AnnouncementController extends Controller
         if ($user->isAdmin()) {
             $validated['section_id'] = $request->input('section_id') ?: null;
         } else {
-            $mySection = Section::where('adviser_id', $user->id)->first();
+            $sectionId = $this->assignedSectionId($user, $request->input('section_id'));
 
-            if (! $mySection) {
-                return back()->withErrors(['section' => 'You are not assigned as adviser to any section.']);
+            if (! $sectionId) {
+                return back()->withErrors(['section_id' => 'Choose one of your assigned sections as the audience.']);
             }
 
-            $validated['section_id'] = $mySection->id;
+            $validated['section_id'] = $sectionId;
         }
 
         $validated['author_id'] = $user->id;
@@ -94,9 +99,25 @@ class AnnouncementController extends Controller
     {
         $this->authorizeManage($announcement, $request->user());
 
-        $sections = $request->user()->isAdmin() ? Section::orderBy('name')->get() : collect();
+        $user = $request->user();
+        $sections = $user->isAdmin() ? Section::orderBy('name')->get() : $user->sections()->orderBy('name')->get();
 
-        return view('announcements.edit', compact('announcement', 'sections'))->with($this->notificationBellData());
+        return view('announcements.edit', [
+            'announcement' => $announcement,
+            'sections' => $sections,
+            'allowSchoolWide' => $user->isAdmin(),
+        ])->with($this->notificationBellData());
+    }
+
+    private function assignedSectionId($user, mixed $sectionId): ?int
+    {
+        $assigned = $user->sections()->orderBy('name')->get();
+
+        if ($sectionId) {
+            return $assigned->firstWhere('id', (int) $sectionId)?->id;
+        }
+
+        return $assigned->count() === 1 ? $assigned->first()->id : null;
     }
 
     public function update(Request $request, Announcement $announcement)
@@ -114,6 +135,8 @@ class AnnouncementController extends Controller
 
         if ($user->isAdmin()) {
             $rules['section_id'] = ['nullable', 'exists:sections,id'];
+        } else {
+            $rules['section_id'] = ['nullable', 'integer'];
         }
 
         $validated = $request->validate($rules);
@@ -122,7 +145,13 @@ class AnnouncementController extends Controller
             $validated['section_id'] = $request->input('section_id') ?: null;
             $validated['is_pinned'] = $request->boolean('is_pinned');
         } else {
-            unset($validated['section_id']);
+            $sectionId = $this->assignedSectionId($user, $request->input('section_id'));
+
+            if (! $sectionId) {
+                return back()->withErrors(['section_id' => 'Choose one of your assigned sections as the audience.']);
+            }
+
+            $validated['section_id'] = $sectionId;
         }
 
         $announcement->update($validated);

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal Login - {{ $schoolSettings->school_name }}</title>
+    @vite('resources/css/app.css')
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-emerald-950 text-slate-800 antialiased lg:bg-slate-50">
@@ -29,8 +30,8 @@
 
             <div class="relative hidden px-12 pb-14 lg:block">
                 <p class="text-sm font-bold uppercase tracking-[0.2em] text-yellow-300">School Attendance Portal</p>
-                <h1 class="mt-4 max-w-xl text-4xl font-bold leading-tight text-white">Stay connected to every school day.</h1>
-                <p class="mt-5 max-w-lg text-lg leading-8 text-emerald-50">Access attendance records, school announcements, and the information you need in one secure portal.</p>
+                <h1 class="mt-4 max-w-xl text-4xl font-bold leading-tight text-white">Your school records, in one secure place.</h1>
+                
             </div>
         </section>
 
@@ -51,6 +52,13 @@
                 <h2 class="mt-2 text-3xl font-bold text-emerald-950">Sign in to your account</h2>
                 <p class="mt-2 text-sm text-slate-500">Use the email and password linked to your school portal account.</p>
 
+                @if (session('status'))
+                    <div class="mt-6 flex items-start gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800" role="status">
+                        <x-ui.icon name="circle-check" class="mt-0.5 h-4 w-4 shrink-0" />
+                        <span>{{ session('status') }}</span>
+                    </div>
+                @endif
+
                 @if ($errors->any())
                     <div class="mt-6 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
                         <x-ui.icon name="alert-triangle" class="mt-0.5 h-4 w-4 shrink-0" />
@@ -67,13 +75,16 @@
                     </div>
                     <div>
                         <label for="password" class="block text-sm font-semibold text-slate-700">Password</label>
-                        <input id="password" type="password" name="password" required autocomplete="current-password"
-                               class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                        <x-ui.password-input id="password" name="password" autocomplete="current-password" :required="true"
+                               class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
                     </div>
-                    <label class="flex items-center gap-2 text-sm text-slate-600">
-                        <input type="checkbox" name="remember" class="h-4 w-4 rounded border-slate-300 text-emerald-700 focus:ring-emerald-600">
-                        Remember me on this device
-                    </label>
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <label class="flex items-center gap-2 text-sm text-slate-600">
+                            <input type="checkbox" name="remember" class="h-4 w-4 rounded border-slate-300 text-emerald-700 focus:ring-emerald-600">
+                            Remember me on this device
+                        </label>
+                        <a href="{{ route('password.request') }}" class="text-sm font-semibold text-emerald-700 hover:text-emerald-900">Forgot password?</a>
+                    </div>
                     <button type="submit" class="w-full rounded-lg bg-emerald-700 px-5 py-3 font-bold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">
                         Sign in
                     </button>

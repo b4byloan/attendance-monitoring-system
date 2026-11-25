@@ -53,6 +53,13 @@
             </div>
         </details>
 
+        @if ($user->isStudent() && $user->student)
+            <a href="{{ route('student.qr-code.download') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50">
+                <x-ui.icon name="download" class="h-4 w-4" />
+                Download QR
+            </a>
+        @endif
+
         <a href="{{ route('account-settings.edit') }}" class="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 transition hover:bg-gray-50">
             <x-ui.icon name="user" class="h-4 w-4" />
             Account Settings

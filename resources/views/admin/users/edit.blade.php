@@ -1,6 +1,15 @@
 <x-layout title="Edit User" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    @php $roleColors = ['admin' => 'indigo', 'sub_admin' => 'blue', 'guard' => 'amber', 'parent' => 'purple']; @endphp
+    @php
+        $roleColors = [
+            'admin' => 'indigo',
+            'sub_admin' => 'blue',
+            'teacher' => 'green',
+            'guard' => 'amber',
+            'parent' => 'purple',
+            'student' => 'gray',
+        ];
+    @endphp
 
     <div class="max-w-xl mx-auto space-y-6">
 
@@ -55,6 +64,39 @@
                     </select>
                     @error('role')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Assigned Sections (Teachers / Sub-Admins)</label>
+                    @php $selectedSections = old('section_ids', $user->sections->pluck('id')->all()); @endphp
+                    @if ($sections->isEmpty())
+                        <p class="text-xs text-gray-500">No sections have been created yet.</p>
+                    @else
+                        <div class="max-h-48 space-y-2 overflow-y-auto rounded-lg border border-gray-200 p-3">
+                            @foreach ($sections as $section)
+                                <label class="flex items-center gap-2 text-sm text-gray-700">
+                                    <input type="checkbox" name="section_ids[]" value="{{ $section->id }}"
+                                           @checked(in_array($section->id, $selectedSections)) class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                                    {{ $section->name }}
+                                </label>
+                            @endforeach
+                        </div>
+                        <p class="mt-1 text-xs text-gray-500">A teacher can be assigned to multiple sections. Ignored for other roles.</p>
+                    @endif
+                </div>
+                <div class="rounded-lg border border-gray-200 p-3">
+                    <p class="text-sm font-medium text-gray-700">Change Password (optional)</p>
+                    <div class="mt-3 space-y-3">
+                        <x-ui.password-input name="password" placeholder="Leave blank to keep the current password" class="@error('password') border-red-400 @enderror" />
+                        @error('password')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
+                        <x-ui.password-input name="password_confirmation" placeholder="Confirm new password" />
+                    </div>
+                </div>
+                @if ($user->subjects->isNotEmpty())
+                    <div class="rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+                        <p class="font-medium text-gray-700">Assigned subjects</p>
+                        <p class="mt-1">{{ $user->subjects->pluck('name')->join(', ') }}</p>
+                        <p class="mt-1 text-xs text-gray-500">Manage subject assignments from Subject Management.</p>
+                    </div>
+                @endif
                 <div class="flex gap-2 pt-2">
                     <x-ui.button type="submit">Save Changes</x-ui.button>
                     <x-ui.button variant="secondary" href="{{ route('admin.users.index') }}">Cancel</x-ui.button>
@@ -64,11 +106,11 @@
 
         <x-ui.card title="Reset Password">
             <p class="text-sm text-gray-500 mb-3">
-                Generates a strong random password on the server and replaces the current one immediately.
-                Nothing is emailed to the user — you will see the new password once and must share it securely yourself.
+                Sends a password reset link to <strong>{{ $user->email }}</strong>.
+                The user must open the email and choose a new password — no password is generated or shown here.
             </p>
             <x-ui.button type="button" variant="secondary" onclick="document.getElementById('reset-password-modal').showModal()">
-                Reset Password
+                Send Reset Email
             </x-ui.button>
         </x-ui.card>
 
@@ -76,12 +118,12 @@
 
     <x-ui.confirm-modal
         id="reset-password-modal"
-        title="Reset password for {{ $user->name }}?"
+        title="Send a password reset email to {{ $user->name }}?"
         form-action="{{ route('admin.users.reset-password', $user) }}"
         form-method="PATCH"
-        confirm-label="Yes, reset password">
-        The current password stops working immediately and a new random password is generated on the server.
-        This cannot be undone.
+        confirm-label="Yes, send reset email"
+        warning="The current password stays active until the user opens the email and sets a new one.">
+        A password reset link will be sent to <strong>{{ $user->email }}</strong>.
     </x-ui.confirm-modal>
 
     <x-ui.confirm-modal
@@ -93,31 +135,6 @@
         You are about to change {{ $user->name }}'s role from
         <strong>{{ $user->roleLabel() }}</strong> to the role selected in the form.
     </x-ui.confirm-modal>
-
-    @if (session('generated_password'))
-        <dialog id="generated-password-modal" class="w-full max-w-md rounded-lg p-0 shadow-xl backdrop:bg-black/40">
-            <div class="p-6">
-                <h3 class="mb-2 text-lg font-semibold text-gray-900">New password for {{ $user->name }}</h3>
-                <p class="mb-4 text-sm text-gray-600">A new password was generated on the server.</p>
-
-                <div class="mb-4 flex items-center gap-2 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2">
-                    <code id="generated-password" class="flex-1 break-all font-mono text-sm text-gray-900">{{ session('generated_password') }}</code>
-                    <x-ui.button type="button" size="sm" variant="secondary" id="copy-generated-password">Copy</x-ui.button>
-                </div>
-
-                <p class="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">
-                    <x-ui.icon name="alert-triangle" class="mt-0.5 h-4 w-4 shrink-0" />
-                    <span>This password will not be shown again. Copy it now and share it securely with the user.</span>
-                </p>
-
-                <div class="flex justify-end">
-                    <x-ui.button type="button" variant="secondary" onclick="document.getElementById('generated-password-modal').close()">
-                        Done
-                    </x-ui.button>
-                </div>
-            </div>
-        </dialog>
-    @endif
 
     @push('scripts')
     <script>
@@ -137,28 +154,6 @@
             userUpdateForm.dataset.confirmed = 'true';
             userUpdateForm.requestSubmit();
         });
-
-        @if (session('generated_password'))
-            const generatedPasswordModal = document.getElementById('generated-password-modal');
-            generatedPasswordModal.showModal();
-
-            document.getElementById('copy-generated-password').addEventListener('click', async function () {
-                const password = document.getElementById('generated-password').textContent.trim();
-
-                try {
-                    await navigator.clipboard.writeText(password);
-                } catch (error) {
-                    const clipboardFallback = document.createElement('textarea');
-                    clipboardFallback.value = password;
-                    document.body.appendChild(clipboardFallback);
-                    clipboardFallback.select();
-                    document.execCommand('copy');
-                    clipboardFallback.remove();
-                }
-
-                this.textContent = 'Copied';
-            });
-        @endif
     </script>
     @endpush
 

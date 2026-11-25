@@ -8,26 +8,66 @@
         <x-ui.back-button :href="route($user->dashboardRoute())" label="Back to dashboard" />
     </div>
 
-    <x-ui.card title="Account Information" class="mb-6">
-        <dl class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
-            <div>
-                <dt class="text-xs uppercase text-gray-500">Role</dt>
-                <dd class="mt-0.5 font-medium">{{ $user->roleLabel() }}</dd>
-            </div>
-            <div>
-                <dt class="text-xs uppercase text-gray-500">Login Email</dt>
-                <dd class="mt-0.5 font-medium">{{ $user->email }}</dd>
-            </div>
-            <div>
-                <dt class="text-xs uppercase text-gray-500">Account Created</dt>
-                <dd class="mt-0.5 font-medium">{{ $user->created_at?->format('M j, Y') ?? '—' }}</dd>
-            </div>
-            <div>
-                <dt class="text-xs uppercase text-gray-500">Last Login</dt>
-                <dd class="mt-0.5 font-medium">{{ $user->last_login_at?->format('M j, Y g:i A') ?? '—' }}</dd>
-            </div>
-        </dl>
-    </x-ui.card>
+    <div class="{{ $student ? 'mb-6 grid grid-cols-1 items-start gap-6 md:grid-cols-2' : 'mb-6' }}">
+        <x-ui.card title="Account Information">
+            <dl class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+                <div>
+                    <dt class="text-xs uppercase text-gray-500">Role</dt>
+                    <dd class="mt-0.5 font-medium">{{ $user->roleLabel() }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs uppercase text-gray-500">Login Email</dt>
+                    <dd class="mt-0.5 font-medium">{{ $user->email }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs uppercase text-gray-500">Account Created</dt>
+                    <dd class="mt-0.5 font-medium">{{ $user->created_at?->format('M j, Y') ?? '—' }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs uppercase text-gray-500">Last Login</dt>
+                    <dd class="mt-0.5 font-medium">{{ $user->last_login_at?->format('M j, Y g:i A') ?? '—' }}</dd>
+                </div>
+            </dl>
+        </x-ui.card>
+
+        @if ($student)
+            <x-ui.card title="Student Information">
+                <dl class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+                    <div>
+                        <dt class="text-xs uppercase text-gray-500">Full Name</dt>
+                        <dd class="mt-0.5 font-medium">{{ $student->full_name }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs uppercase text-gray-500">LRN</dt>
+                        <dd class="mt-0.5 flex flex-wrap items-center gap-2">
+                            <span class="font-mono font-medium">{{ $student->lrn }}</span>
+                            <x-ui.copy-button :value="$student->lrn" />
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs uppercase text-gray-500">Status</dt>
+                        <dd class="mt-0.5">
+                            <x-ui.badge color="{{ $student->status === 'active' ? 'green' : 'gray' }}">
+                                {{ ucfirst($student->status) }}
+                            </x-ui.badge>
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs uppercase text-gray-500">Grade Level</dt>
+                        <dd class="mt-0.5 font-medium">{{ $student->section->grade_level ?? '—' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs uppercase text-gray-500">Section</dt>
+                        <dd class="mt-0.5 font-medium">{{ $student->section->name ?? '—' }}</dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs uppercase text-gray-500">Adviser</dt>
+                        <dd class="mt-0.5 font-medium">{{ $student->section->adviser->name ?? '—' }}</dd>
+                    </div>
+                </dl>
+            </x-ui.card>
+        @endif
+    </div>
 
     <x-ui.card title="Personal Information">
         <form method="POST" action="{{ route('account-settings.update') }}" class="space-y-4">
@@ -51,22 +91,19 @@
 
             <div>
                 <label for="current_password" class="mb-1 block text-sm font-medium text-gray-700">Current Password</label>
-                <input type="password" id="current_password" name="current_password" autocomplete="current-password"
-                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <x-ui.password-input name="current_password" id="current_password" autocomplete="current-password" />
                 <p class="mt-1 text-xs text-gray-500">Required when changing your email or setting a new password.</p>
             </div>
 
             <div>
                 <label for="new_password" class="mb-1 block text-sm font-medium text-gray-700">New Password</label>
-                <input type="password" id="new_password" name="new_password" autocomplete="new-password"
-                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                <p class="mt-1 text-xs text-gray-500">At least 8 characters.</p>
+                <x-ui.password-input name="new_password" id="new_password" />
+                <p class="mt-1 text-xs text-gray-500">At least 8 characters. Confirmation must match.</p>
             </div>
 
             <div>
                 <label for="new_password_confirmation" class="mb-1 block text-sm font-medium text-gray-700">Confirm New Password</label>
-                <input type="password" id="new_password_confirmation" name="new_password_confirmation" autocomplete="new-password"
-                       class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <x-ui.password-input name="new_password_confirmation" id="new_password_confirmation" />
             </div>
 
             <x-ui.button type="submit">Save Changes</x-ui.button>

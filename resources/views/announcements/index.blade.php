@@ -2,7 +2,7 @@
 
     <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <h2 class="text-lg font-semibold text-gray-900">Announcements</h2>
-        <x-ui.button href="{{ route('announcements.create') }}"><x-ui.icon name="plus" class="h-4 w-4" /> New Announcement</x-ui.button>
+        <x-ui.button href="{{ route('announcements.create') }}"><x-ui.icon name="plus" class="h-4 w-4" /> Create Announcements</x-ui.button>
     </div>
 
     <x-ui.card class="mb-6">
@@ -61,7 +61,7 @@
                 <x-ui.empty-state message="{{ request('search') ? 'No announcements match your search.' : 'No announcements yet.' }}">
                     @if (! request('search'))
                         <x-slot:action>
-                            <x-ui.button href="{{ route('announcements.create') }}" size="sm">+ Create your first announcement</x-ui.button>
+                            <x-ui.button href="{{ route('announcements.create') }}" size="sm">Create Announcements</x-ui.button>
                         </x-slot:action>
                     @endif
                 </x-ui.empty-state>

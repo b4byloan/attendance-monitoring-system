@@ -1,8 +1,11 @@
 <x-simple-layout title="Parent Dashboard" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    <div class="mb-6">
-        <p class="text-sm text-gray-500">Hello,</p>
-        <h2 class="text-xl font-bold text-gray-900">{{ auth()->user()->name }}</h2>
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <p class="text-sm text-gray-500">Hello,</p>
+            <h2 class="text-xl font-bold text-gray-900">{{ auth()->user()->name }}</h2>
+        </div>
+        <x-ui.button href="{{ route('parent.link-student.index') }}" variant="secondary" size="sm">Link your account</x-ui.button>
     </div>
 
     @if ($students->count() > 1)

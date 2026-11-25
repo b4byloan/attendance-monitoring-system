@@ -12,7 +12,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -39,10 +38,14 @@ class RegistrationController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $request->merge([
+            'phone_number' => preg_replace('/\D+/', '', (string) $request->input('phone_number')),
+        ]);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
-            'phone_number' => ['required', 'string', 'max:30'],
+            'phone_number' => ['required', 'digits:11', 'regex:/^09\d{9}$/'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -82,10 +85,11 @@ class RegistrationController extends Controller
     public function storeStudent(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'lrn' => ['required', 'digits:12', Rule::unique('students', 'lrn')],
+            'lrn' => ['required', 'digits:12'],
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
+            'suffix' => ['nullable', 'string', 'max:20'],
             'grade_level' => ['required', 'string', Rule::exists('sections', 'grade_level')],
             'section_id' => [
                 'required',
@@ -96,31 +100,42 @@ class RegistrationController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $fullName = collect([
-            $validated['first_name'],
-            $validated['middle_name'] ?? null,
-            $validated['last_name'],
-        ])->filter()->implode(' ');
+        $student = Student::matchSchoolRecord(
+            lrn: $validated['lrn'],
+            firstName: $validated['first_name'],
+            lastName: $validated['last_name'],
+            sectionId: (int) $validated['section_id'],
+            gradeLevel: $validated['grade_level'],
+            middleName: $validated['middle_name'] ?? '',
+            suffix: $validated['suffix'] ?? '',
+        );
 
-        $user = DB::transaction(function () use ($validated, $fullName): User {
+        if (! $student) {
+            return back()
+                ->withInput($request->except(['password', 'password_confirmation']))
+                ->withErrors([
+                    'lrn' => 'The details you entered do not match any student record. Check your LRN, name including middle name and suffix, grade level, and section, or contact your school administrator.',
+                ]);
+        }
+
+        if ($student->user_id) {
+            return back()
+                ->withInput($request->except(['password', 'password_confirmation']))
+                ->withErrors([
+                    'lrn' => 'This student record already has a registered account. Please sign in instead.',
+                ]);
+        }
+
+        $user = DB::transaction(function () use ($validated, $student): User {
             $user = User::create([
-                'name' => $fullName,
+                'name' => $student->full_name,
                 'email' => $validated['email'],
                 'password' => $validated['password'],
                 'role' => 'student',
                 'is_active' => true,
             ]);
 
-            Student::create([
-                'lrn' => $validated['lrn'],
-                'first_name' => $validated['first_name'],
-                'middle_name' => $validated['middle_name'] ?? null,
-                'last_name' => $validated['last_name'],
-                'section_id' => $validated['section_id'],
-                'qr_code' => Str::random(32),
-                'status' => 'active',
-                'user_id' => $user->id,
-            ]);
+            $student->update(['user_id' => $user->id]);
 
             return $user;
         });
@@ -129,6 +144,6 @@ class RegistrationController extends Controller
         $request->session()->regenerate();
 
         return redirect()->route('student.dashboard')
-            ->with('success', 'Your student account has been created.');
+            ->with('success', 'Your account has been linked to your school record.');
     }
 }

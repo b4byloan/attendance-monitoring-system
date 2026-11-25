@@ -37,7 +37,7 @@ class AuditLogController extends Controller
             $query->whereDate('created_at', $date);
         }
 
-        $logs = $query->orderByDesc('created_at')->paginate(30)->withQueryString();
+        $logs = $query->orderByDesc('created_at')->paginate(10)->withQueryString();
 
         $actions = ActivityLog::select('action')->distinct()->orderBy('action')->pluck('action');
 

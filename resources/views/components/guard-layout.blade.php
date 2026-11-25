@@ -7,9 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title }} - School Attendance System</title>
+    @vite('resources/css/app.css')
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-900 antialiased">
+<x-ui.toast-container />
 <div class="flex h-screen flex-col">
     <header class="z-10 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6">
         <span class="flex items-center gap-2.5 font-bold text-emerald-900">
@@ -33,13 +35,6 @@
 
     <main class="flex-1 overflow-y-auto p-4 sm:p-6">
         <div class="mx-auto max-w-3xl">
-            @if (session('success'))
-                <x-ui.alert type="success">{{ session('success') }}</x-ui.alert>
-            @endif
-            @if ($errors->any())
-                <x-ui.alert type="error">{{ $errors->first() }}</x-ui.alert>
-            @endif
-
             {{ $slot }}
         </div>
     </main>

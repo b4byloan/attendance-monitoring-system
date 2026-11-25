@@ -15,9 +15,12 @@ class AccountSettingsController extends Controller
 
     public function edit(Request $request): View
     {
+        $user = $request->user();
+
         return view('account-settings.edit', [
-            'user' => $request->user(),
-            'layout' => $this->layoutFor($request->user()),
+            'user' => $user,
+            'student' => $user->isStudent() ? $user->student?->load('section.adviser') : null,
+            'layout' => $this->layoutFor($user),
         ])->with($this->notificationBellData());
     }
 
@@ -40,6 +43,6 @@ class AccountSettingsController extends Controller
 
     private function layoutFor(User $user): string
     {
-        return $user->isAdmin() || $user->isSubAdmin() ? 'layout' : 'simple-layout';
+        return $user->isAdmin() || $user->isTeachingStaff() ? 'layout' : 'simple-layout';
     }
 }

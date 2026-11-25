@@ -40,8 +40,8 @@
             @endif
         </form>
 
-        <div class="bg-white rounded-lg shadow overflow-hidden">
-            <table class="w-full text-left">
+        <div class="max-w-full overflow-x-auto overscroll-x-contain rounded-lg bg-white shadow">
+            <table class="w-full min-w-max text-left">
                 <thead class="bg-gray-50 text-sm text-gray-600">
                     <tr>
                         <th class="px-4 py-3">Date</th>

@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration - {{ $schoolSettings->school_name }}</title>
+    @vite('resources/css/app.css')
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="min-h-screen bg-emerald-950 text-slate-800 antialiased lg:bg-slate-50">
@@ -102,19 +103,19 @@
                         </div>
                         <div>
                             <label for="phone_number" class="block text-sm font-semibold text-slate-700">Phone number</label>
-                            <input id="phone_number" type="tel" name="phone_number" value="{{ old('registration_type') === 'parent' ? old('phone_number') : '' }}" required autocomplete="tel"
+                            <input id="phone_number" type="tel" name="phone_number" value="{{ old('registration_type') === 'parent' ? old('phone_number') : '' }}" required autocomplete="tel" inputmode="numeric" pattern="09[0-9]{9}" maxlength="11" title="Enter an 11-digit mobile number starting with 09"
                                    class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
                         </div>
                         <div>
                             <label for="password" class="block text-sm font-semibold text-slate-700">Password</label>
-                            <input id="password" type="password" name="password" required autocomplete="new-password"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                            <x-ui.password-input id="password" name="password" autocomplete="new-password" :required="true"
+                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
                             <p class="mt-1 text-xs text-slate-500">Use at least 8 characters.</p>
                         </div>
                         <div>
                             <label for="password_confirmation" class="block text-sm font-semibold text-slate-700">Confirm password</label>
-                            <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                            <x-ui.password-input id="password_confirmation" name="password_confirmation" autocomplete="new-password" :required="true"
+                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
                         </div>
                         <button type="submit" class="w-full rounded-lg bg-emerald-700 px-5 py-3 font-bold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">
                             Create parent account
@@ -129,6 +130,9 @@
                     <form method="POST" action="{{ route('register.student') }}" class="space-y-4">
                         @csrf
                         <input type="hidden" name="registration_type" value="student">
+                        <p class="rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-3 text-xs text-emerald-800">
+                            Make sure the details are correct. Use the same LRN, name including middle name and suffix(if you have one), grade level, and section.
+                        </p>
                         <div>
                             <label for="lrn" class="block text-sm font-semibold text-slate-700">LRN (12 digits)</label>
                             <input id="lrn" type="text" name="lrn" value="{{ old('registration_type') === 'student' ? old('lrn') : '' }}" required @if ($activeTab === 'student') autofocus @endif
@@ -147,10 +151,17 @@
                                        class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
                             </div>
                         </div>
-                        <div>
-                            <label for="middle_name" class="block text-sm font-semibold text-slate-700">Middle name <span class="font-normal text-slate-500">(optional)</span></label>
-                            <input id="middle_name" type="text" name="middle_name" value="{{ old('registration_type') === 'student' ? old('middle_name') : '' }}" autocomplete="additional-name"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <label for="middle_name" class="block text-sm font-semibold text-slate-700">Middle name</label>
+                                <input id="middle_name" type="text" name="middle_name" value="{{ old('registration_type') === 'student' ? old('middle_name') : '' }}" autocomplete="additional-name"
+                                       class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                            </div>
+                            <div>
+                                <label for="suffix" class="block text-sm font-semibold text-slate-700">Suffix</label>
+                                <input id="suffix" type="text" name="suffix" value="{{ old('registration_type') === 'student' ? old('suffix') : '' }}" maxlength="20" autocomplete="honorific-suffix"
+                                       class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                            </div>
                         </div>
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
@@ -181,14 +192,14 @@
                         </div>
                         <div>
                             <label for="student_password" class="block text-sm font-semibold text-slate-700">Password</label>
-                            <input id="student_password" type="password" name="password" required autocomplete="new-password"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                            <x-ui.password-input id="student_password" name="password" autocomplete="new-password" :required="true"
+                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
                             <p class="mt-1 text-xs text-slate-500">Use at least 8 characters.</p>
                         </div>
                         <div>
                             <label for="student_password_confirmation" class="block text-sm font-semibold text-slate-700">Confirm password</label>
-                            <input id="student_password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                            <x-ui.password-input id="student_password_confirmation" name="password_confirmation" autocomplete="new-password" :required="true"
+                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
                         </div>
                         <button type="submit" class="w-full rounded-lg bg-emerald-700 px-5 py-3 font-bold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">
                             Create student account

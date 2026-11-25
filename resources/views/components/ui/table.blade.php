@@ -1,5 +1,5 @@
-<div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-    <table class="w-full text-left text-sm">
+<div class="w-full max-w-full overflow-x-auto overscroll-x-contain rounded-lg border border-gray-200 bg-white shadow-sm">
+    <table class="w-full min-w-max text-left text-sm">
         {{ $slot }}
     </table>
 </div>

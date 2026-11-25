@@ -29,6 +29,8 @@ it('shows active school announcements and hides expired announcements', function
     $response->assertOk();
     $response->assertSee('Active school announcement');
     $response->assertDontSee('Expired school announcement');
+    $response->assertDontSee('page-loader');
+    $response->assertDontSee('animate-spin');
 });
 
 it('shows all active announcements on the public announcements page', function () {
@@ -71,6 +73,7 @@ it('redirects an authenticated user to the dashboard assigned to their role', fu
 })->with([
     'admin' => ['admin', 'admin.dashboard'],
     'sub-admin' => ['sub_admin', 'sub-admin.dashboard'],
+    'teacher' => ['teacher', 'sub-admin.dashboard'],
     'parent' => ['parent', 'parent.dashboard'],
     'guard' => ['guard', 'guard.dashboard'],
     'student' => ['student', 'student.dashboard'],

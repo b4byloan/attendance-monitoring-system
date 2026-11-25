@@ -6,72 +6,97 @@ use App\Http\Controllers\Concerns\LoadsNotificationBell;
 use App\Http\Controllers\Controller;
 use App\Models\Section;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class SectionController extends Controller
 {
     use LoadsNotificationBell;
 
-    public function index(Request $request)
+    public function index(Request $request): View
     {
-        $query = Section::withCount('students')->with('adviser');
+        $query = Section::withCount('students')->with(['adviser', 'teachers']);
 
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
+            $query->where(function ($query) use ($search): void {
+                $query->where('name', 'like', "%{$search}%")
                     ->orWhere('grade_level', 'like', "%{$search}%")
                     ->orWhere('school_year', 'like', "%{$search}%");
             });
         }
 
-        $sections = $query->orderByDesc('school_year')->orderBy('name')->paginate(20)->withQueryString();
+        $sections = $query->orderByDesc('school_year')->orderBy('name')->paginate(10)->withQueryString();
 
         return view('admin.sections.index', compact('sections'))->with($this->notificationBellData());
     }
 
-    public function create()
+    public function create(): View
     {
-        $advisers = User::where('role', 'sub_admin')->orderBy('name')->get();
+        $currentYear = now()->year;
 
-        return view('admin.sections.create', compact('advisers'))->with($this->notificationBellData());
+        return view('admin.sections.create', [
+            'teachers' => $this->teacherOptions(),
+            'schoolYearStart' => $currentYear,
+            'schoolYearEnd' => $currentYear + 1,
+        ])->with($this->notificationBellData());
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $validated = $this->validateSection($request);
-        $validated['status'] = 'active';
+        $teacherIds = $validated['teacher_ids'] ?? [];
+        unset($validated['teacher_ids']);
 
-        Section::create($validated);
+        $validated['status'] = 'active';
+        $validated['adviser_id'] = $teacherIds[0] ?? null;
+
+        $section = Section::create($validated);
+        $section->teachers()->sync($teacherIds);
 
         return redirect()->route('admin.sections.index')->with('success', 'Section created.');
     }
 
-    public function show(Section $section)
+    public function show(Section $section): View
     {
-        $section->load('adviser', 'students');
+        $section->load('adviser', 'teachers');
 
-        return view('admin.sections.show', compact('section'))->with($this->notificationBellData());
+        $students = $section->students()->orderBy('last_name')->paginate(10);
+
+        return view('admin.sections.show', compact('section', 'students'))->with($this->notificationBellData());
     }
 
-    public function edit(Section $section)
+    public function edit(Section $section): View
     {
-        $advisers = User::where('role', 'sub_admin')->orderBy('name')->get();
+        $section->load('teachers');
+        [$schoolYearStart, $schoolYearEnd] = array_pad(explode('-', $section->school_year, 2), 2, '');
 
-        return view('admin.sections.edit', compact('section', 'advisers'))->with($this->notificationBellData());
+        return view('admin.sections.edit', [
+            'section' => $section,
+            'teachers' => $this->teacherOptions(),
+            'schoolYearStart' => $schoolYearStart,
+            'schoolYearEnd' => $schoolYearEnd,
+        ])->with($this->notificationBellData());
     }
 
-    public function update(Request $request, Section $section)
+    public function update(Request $request, Section $section): RedirectResponse
     {
         $validated = $this->validateSection($request, $section->id);
+        $teacherIds = $validated['teacher_ids'] ?? [];
+        unset($validated['teacher_ids']);
+
         $validated['status'] = $request->input('status', 'active');
+        $validated['adviser_id'] = $teacherIds[0] ?? null;
 
         $section->update($validated);
+        $section->teachers()->sync($teacherIds);
 
         return redirect()->route('admin.sections.show', $section)->with('success', 'Section updated.');
     }
 
-    public function toggleStatus(Section $section)
+    public function toggleStatus(Section $section): RedirectResponse
     {
         $section->update([
             'status' => $section->status === 'active' ? 'inactive' : 'active',
@@ -80,7 +105,7 @@ class SectionController extends Controller
         return back()->with('success', 'Section status updated.');
     }
 
-    public function destroy(Section $section)
+    public function destroy(Section $section): RedirectResponse
     {
         if ($section->students()->exists()) {
             return back()->withErrors(['delete' => 'This section still has students assigned. Reassign or deactivate them first, or deactivate the section instead of deleting it.']);
@@ -91,42 +116,50 @@ class SectionController extends Controller
         return redirect()->route('admin.sections.index')->with('success', 'Section deleted.');
     }
 
+    /** @return array<string, mixed> */
     private function validateSection(Request $request, ?int $ignoreId = null): array
     {
-        return $request->validate([
+        $schoolYearStart = $request->input('school_year_start');
+        $schoolYearEnd = $request->input('school_year_end');
+        $schoolYear = is_scalar($schoolYearStart) && is_scalar($schoolYearEnd)
+            ? $schoolYearStart.'-'.$schoolYearEnd
+            : '';
+        $nextSchoolYear = is_scalar($schoolYearStart)
+            ? (string) ((int) $schoolYearStart + 1)
+            : '';
+
+        $validated = $request->validate([
             'name' => [
                 'required', 'string', 'max:255',
                 Rule::unique('sections', 'name')
-                    ->where(fn ($query) => $query->where('school_year', $request->school_year))
+                    ->where(fn ($query) => $query->where('school_year', $schoolYear))
                     ->ignore($ignoreId),
             ],
             'grade_level' => ['required', 'string', 'max:255'],
-            'school_year' => ['required', 'string', 'max:20'],
-            'max_capacity' => ['nullable', 'integer', 'min:1'],
-            'adviser_id' => [
-                'nullable',
-                'exists:users,id',
-                function ($attribute, $value, $fail) use ($ignoreId) {
-                    if (! $value) {
-                        return;
-                    }
-
-                    $user = User::find($value);
-                    if (! $user || $user->role !== 'sub_admin') {
-                        $fail('The adviser must be a Teacher account.');
-
-                        return;
-                    }
-
-                    $alreadyAdvising = Section::where('adviser_id', $value)
-                        ->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))
-                        ->exists();
-
-                    if ($alreadyAdvising) {
-                        $fail('This Teacher is already assigned as adviser to another section.');
-                    }
-                },
+            'school_year_start' => ['required', 'integer', 'digits:4', 'min:1000', 'max:9999'],
+            'school_year_end' => ['required', 'integer', 'digits:4', 'min:1000', 'max:9999', Rule::in([$nextSchoolYear])],
+            'max_capacity' => ['nullable', 'integer', 'min:1', 'max:60'],
+            'status' => ['nullable', 'in:active,inactive'],
+            'teacher_ids' => ['nullable', 'array'],
+            'teacher_ids.*' => [
+                'integer',
+                Rule::exists('users', 'id')->whereIn('role', User::teachingRoles()),
             ],
         ]);
+
+        $validated['school_year'] = $validated['school_year_start'].'-'.$validated['school_year_end'];
+        unset($validated['school_year_start'], $validated['school_year_end']);
+
+        return $validated;
+    }
+
+    /** @return Collection<int, User> */
+    private function teacherOptions()
+    {
+        return User::query()
+            ->whereIn('role', User::teachingRoles())
+            ->where('is_active', true)
+            ->orderBy('name')
+            ->get();
     }
 }

@@ -24,16 +24,19 @@
         <x-ui.table>
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                 <tr>
-                    <th class="px-4 py-3 text-left">LRN</th>
-                    <th class="px-4 py-3 text-left">Name</th>
-                    <th class="px-4 py-3 text-left">Section</th>
-                    <th class="px-4 py-3 text-left">Status</th>
+                    <th class="px-4 py-3 text-left">#</th>
+                    <x-ui.sortable-th column="lrn" label="LRN" />
+                    <x-ui.sortable-th column="name" label="Name" />
+                    <x-ui.sortable-th column="section" label="Section" />
+                    <x-ui.sortable-th column="email" label="Email" />
+                    <x-ui.sortable-th column="status" label="Status" />
                     <th class="px-4 py-3 text-left">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y">
                 @forelse ($students as $student)
                     <tr>
+                        <td class="px-4 py-3 text-sm text-gray-500">{{ $students->firstItem() + $loop->index }}</td>
                         <td class="px-4 py-3">
                             <span class="flex items-center gap-2">
                                 <span class="font-mono text-xs">{{ $student->lrn }}</span>
@@ -43,14 +46,20 @@
                         <td class="px-4 py-3">{{ $student->full_name }}</td>
                         <td class="px-4 py-3">{{ $student->section->name ?? '—' }}</td>
                         <td class="px-4 py-3">
+                            @if ($student->user?->email)
+                                {{ $student->user->email }}
+                            @else
+                                <span class="text-xs text-gray-400">Not registered</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3">
                             <x-ui.badge color="{{ $student->status === 'active' ? 'green' : 'gray' }}">
                                 {{ ucfirst($student->status) }}
                             </x-ui.badge>
                         </td>
                         <td class="px-4 py-3 space-x-2 text-sm whitespace-nowrap">
-                            <a href="{{ route('admin.students.show', $student) }}" class="text-indigo-600 hover:underline">View</a>
-                            <a href="{{ route('admin.students.edit', $student) }}" class="text-indigo-600 hover:underline">Edit</a>
-                            <a href="{{ route('admin.students.qr-code.show', $student) }}" class="text-purple-600 hover:underline">QR</a>
+                            <a href="{{ route('admin.students.show', $student) }}" class="text-indigo-600 hover:underline">View/Edit</a>
+                            <button type="button" onclick="document.getElementById('qr-modal-{{ $student->id }}').showModal()" class="text-purple-600 hover:underline">QR</button>
                             <button type="button" onclick="document.getElementById('status-modal-{{ $student->id }}').showModal()" class="text-amber-600 hover:underline">
                                 {{ $student->status === 'active' ? 'Deactivate' : 'Activate' }}
                             </button>
@@ -61,7 +70,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="5">
+                        <td colspan="7">
                             <x-ui.empty-state message="No students yet.">
                                 <x-slot:action>
                                     <x-ui.button href="{{ route('admin.students.create') }}" size="sm">+ Add your first student</x-ui.button>
@@ -77,6 +86,11 @@
     <div class="mt-4">{{ $students->links() }}</div>
 
     @foreach ($students as $student)
+        <x-ui.student-qr-modal
+            id="qr-modal-{{ $student->id }}"
+            :student="$student"
+            :data-uri="$student->qrCodeDataUri(240)" />
+
         <x-ui.confirm-modal
             id="status-modal-{{ $student->id }}"
             title="{{ $student->status === 'active' ? 'Deactivate' : 'Activate' }} {{ $student->full_name }}?"

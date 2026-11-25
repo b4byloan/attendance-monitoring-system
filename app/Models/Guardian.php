@@ -6,6 +6,7 @@ use App\Observers\GuardianObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ObservedBy(GuardianObserver::class)]
 class Guardian extends Model
@@ -31,6 +32,11 @@ class Guardian extends Model
     public function students()
     {
         return $this->belongsToMany(Student::class, 'guardian_student');
+    }
+
+    public function linkRequests(): HasMany
+    {
+        return $this->hasMany(GuardianLinkRequest::class);
     }
 
     public function smsNotifications()

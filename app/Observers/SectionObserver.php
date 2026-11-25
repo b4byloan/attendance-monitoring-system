@@ -10,17 +10,26 @@ class SectionObserver
 {
     public function created(Section $section): void
     {
+        $this->syncAdviser($section);
         $this->log('section_created', "Created section {$section->name} ({$section->school_year}).", $section);
     }
 
     public function updated(Section $section): void
     {
+        $this->syncAdviser($section);
         $this->log('section_updated', "Updated section {$section->name}.", $section);
     }
 
     public function deleted(Section $section): void
     {
         $this->log('section_deleted', "Deleted section {$section->name}.", $section);
+    }
+
+    private function syncAdviser(Section $section): void
+    {
+        if ($section->adviser_id) {
+            $section->teachers()->syncWithoutDetaching([$section->adviser_id]);
+        }
     }
 
     private function log(string $action, string $description, Section $section): void

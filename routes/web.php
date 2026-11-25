@@ -11,10 +11,12 @@ use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SectionController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\StudentController;
+use App\Http\Controllers\Admin\SubjectController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AnnouncementController;
-use App\Http\Controllers\AttendanceCorrectionController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\GuardController;
 use App\Http\Controllers\NotificationController;
@@ -24,6 +26,7 @@ use App\Http\Controllers\ScannerController;
 use App\Http\Controllers\StudentPortalController;
 use App\Http\Controllers\SubAdminController;
 use App\Http\Controllers\SubAdminStudentController;
+use App\Http\Controllers\TeacherScannerController;
 use App\Http\Controllers\WelcomeController;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Route;
@@ -40,6 +43,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [LoginController::class, 'store'])->middleware('throttle:5,1');
     Route::post('/register', [RegistrationController::class, 'store'])->middleware('throttle:5,1');
     Route::post('/register/student', [RegistrationController::class, 'storeStudent'])->name('register.student')->middleware('throttle:5,1');
+
+    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email')->middleware('throttle:5,1');
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('/reset-password', [NewPasswordController::class, 'store'])->name('password.store')->middleware('throttle:5,1');
 });
 
 Route::middleware('auth')->group(function () {
@@ -55,9 +63,9 @@ Route::middleware('auth')->group(function () {
 
     Route::middleware('role:admin')->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        Route::resource('students', StudentController::class);
+        Route::resource('students', StudentController::class)->except(['edit']);
         Route::patch('/students/{student}/toggle-status', [StudentController::class, 'toggleStatus'])->name('students.toggle-status');
-        Route::get('/students/{student}/qr-code', [QrCodeController::class, 'show'])->name('students.qr-code.show');
+        Route::patch('/students/{student}/reset-password', [StudentController::class, 'resetPassword'])->name('students.reset-password');
         Route::patch('/students/{student}/qr-code/regenerate', [QrCodeController::class, 'regenerate'])->name('students.qr-code.regenerate');
         Route::get('/students/{student}/qr-code/download', [QrCodeController::class, 'download'])->name('students.qr-code.download');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
@@ -67,10 +75,9 @@ Route::middleware('auth')->group(function () {
         Route::resource('users', UserController::class)->except(['show']);
         Route::patch('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
         Route::patch('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
-        Route::resource('guardians', GuardianController::class);
+        Route::resource('guardians', GuardianController::class)->except(['index', 'edit']);
         Route::post('/guardians/{guardian}/students', [GuardianController::class, 'linkStudent'])->name('guardians.students.link');
         Route::delete('/guardians/{guardian}/students/{student}', [GuardianController::class, 'unlinkStudent'])->name('guardians.students.unlink');
-        Route::post('/guardians/{guardian}/create-account', [GuardianController::class, 'createParentAccount'])->name('guardians.create-account');
         Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
@@ -83,15 +90,25 @@ Route::middleware('auth')->group(function () {
         Route::get('/design-preview', [DesignPreviewController::class, 'index'])->name('design-preview');
         Route::resource('sections', SectionController::class);
         Route::patch('/sections/{section}/toggle-status', [SectionController::class, 'toggleStatus'])->name('sections.toggle-status');
-        Route::post('/students/{student}/create-account', [StudentController::class, 'createAccount'])->name('students.create-account');
+        Route::resource('subjects', SubjectController::class)->except(['show']);
+        Route::patch('/subjects/{subject}/toggle-status', [SubjectController::class, 'toggleStatus'])->name('subjects.toggle-status');
     });
 
-    Route::middleware('role:sub_admin')->prefix('sub-admin')->name('sub-admin.')->group(function () {
+    Route::middleware('role:admin,sub_admin,teacher')->prefix('class-attendance')->name('teacher-scanner.')->group(function () {
+        Route::get('/scanner', [TeacherScannerController::class, 'index'])->name('index');
+        Route::post('/scan', [TeacherScannerController::class, 'verify'])->name('verify');
+    });
+
+    Route::middleware('role:sub_admin,teacher')->prefix('sub-admin')->name('sub-admin.')->group(function () {
         Route::get('/dashboard', [SubAdminController::class, 'dashboard'])->name('dashboard');
         Route::get('/students', [SubAdminStudentController::class, 'index'])->name('students.index');
         Route::get('/students/{student}', [SubAdminStudentController::class, 'show'])->name('students.show');
+        Route::get('/sections', [SubAdminStudentController::class, 'sections'])->name('sections.index');
         Route::get('/sections/{section}/students', [SubAdminStudentController::class, 'section'])->name('sections.students');
         Route::get('/roster', [SubAdminStudentController::class, 'roster'])->name('roster.index');
+        Route::get('/roster/export/pdf', [SubAdminStudentController::class, 'exportPdf'])->name('roster.export-pdf');
+        Route::get('/roster/export/excel', [SubAdminStudentController::class, 'exportExcel'])->name('roster.export-excel');
+        Route::get('/roster/export/csv', [SubAdminStudentController::class, 'exportCsv'])->name('roster.export-csv');
     });
 
     Route::middleware('role:parent')->prefix('parent')->name('parent.')->group(function () {
@@ -99,13 +116,17 @@ Route::middleware('auth')->group(function () {
         Route::get('/students/{student}/dashboard', [ParentPortalController::class, 'dashboard'])->name('students.dashboard');
         Route::get('/students/{student}/attendance', [ParentPortalController::class, 'attendance'])->name('students.attendance');
         Route::get('/announcements', [ParentPortalController::class, 'announcements'])->name('announcements');
+        Route::get('/link-student', [ParentPortalController::class, 'linkStudent'])->name('link-student.index');
+        Route::post('/link-student', [ParentPortalController::class, 'storeLinkRequest'])->name('link-student.store');
+        Route::delete('/link-requests', [ParentPortalController::class, 'destroyAllLinkRequests'])->name('link-requests.destroy-all');
+        Route::delete('/link-requests/{linkRequest}', [ParentPortalController::class, 'destroyLinkRequest'])->name('link-requests.destroy');
     });
 
     Route::middleware('role:guard')->prefix('guard')->name('guard.')->group(function () {
         Route::get('/dashboard', [GuardController::class, 'dashboard'])->name('dashboard');
     });
 
-    Route::middleware('role:admin,sub_admin')->prefix('announcements')->name('announcements.')->group(function () {
+    Route::middleware('role:admin,sub_admin,teacher')->prefix('announcements')->name('announcements.')->group(function () {
         Route::get('/', [AnnouncementController::class, 'index'])->name('index');
         Route::get('/create', [AnnouncementController::class, 'create'])->name('create');
         Route::post('/', [AnnouncementController::class, 'store'])->name('store');
@@ -115,17 +136,6 @@ Route::middleware('auth')->group(function () {
         Route::patch('/{announcement}/toggle-pin', [AnnouncementController::class, 'togglePin'])->name('toggle-pin');
     });
 
-    Route::middleware('role:admin,sub_admin,guard')->prefix('attendance-corrections')->name('attendance-corrections.')->group(function () {
-        Route::get('/', [AttendanceCorrectionController::class, 'index'])->name('index');
-        Route::get('/create', [AttendanceCorrectionController::class, 'create'])->name('create');
-        Route::get('/create/{attendanceRecord}', [AttendanceCorrectionController::class, 'createForRecord'])->name('create-for-record');
-        Route::post('/', [AttendanceCorrectionController::class, 'store'])->name('store');
-    });
-
-    Route::middleware('role:admin,sub_admin')->prefix('attendance-corrections')->name('attendance-corrections.')->group(function () {
-        Route::patch('/{correction}/approve', [AttendanceCorrectionController::class, 'approve'])->name('approve');
-        Route::patch('/{correction}/reject', [AttendanceCorrectionController::class, 'reject'])->name('reject');
-    });
     Route::prefix('notifications')->name('notifications.')->group(function () {
         Route::get('/', [NotificationController::class, 'index'])->name('index');
         Route::get('/{id}/read', [NotificationController::class, 'readAndRedirect'])->name('read');
@@ -136,5 +146,12 @@ Route::middleware('auth')->group(function () {
 Route::middleware('role:student')->prefix('student')->name('student.')->group(function () {
     Route::get('/dashboard', [StudentPortalController::class, 'dashboard'])->name('dashboard');
     Route::get('/attendance', [StudentPortalController::class, 'attendance'])->name('attendance');
-    Route::get('/profile', [StudentPortalController::class, 'profile'])->name('profile');
+    Route::redirect('/profile', '/account-settings')->name('profile');
+    Route::get('/link-requests', [StudentPortalController::class, 'linkRequests'])->name('link-requests.index');
+    Route::delete('/link-requests', [StudentPortalController::class, 'destroyAllLinkRequests'])->name('link-requests.destroy-all');
+    Route::delete('/link-requests/{linkRequest}', [StudentPortalController::class, 'destroyLinkRequest'])->name('link-requests.destroy');
+    Route::post('/link-requests/{linkRequest}/accept', [StudentPortalController::class, 'acceptLinkRequest'])->name('link-requests.accept');
+    Route::post('/link-requests/{linkRequest}/deny', [StudentPortalController::class, 'denyLinkRequest'])->name('link-requests.deny');
+    Route::get('/qr-code', [QrCodeController::class, 'showForStudent'])->name('qr-code');
+    Route::get('/qr-code/download', [QrCodeController::class, 'downloadForStudent'])->name('qr-code.download');
 });

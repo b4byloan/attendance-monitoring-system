@@ -60,6 +60,7 @@
                 @endforelse
             </tbody>
         </x-ui.table>
+        <div class="mt-4">{{ $todaysScans->links() }}</div>
     </x-ui.card>
 
     <script>

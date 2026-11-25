@@ -7,9 +7,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title }} - School Attendance System</title>
+    @vite('resources/css/app.css')
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 text-gray-900 antialiased">
+<x-ui.toast-container />
 <div class="flex h-screen overflow-hidden">
 
     <input type="checkbox" id="sidebar-toggle" class="peer hidden">
@@ -38,26 +40,25 @@
                         'Users' => [
                             'icon' => 'users',
                             'items' => [
-                                ['label' => 'User Accounts', 'route' => 'admin.users.index', 'icon' => 'user'],
-                                ['label' => 'Students', 'route' => 'admin.students.index', 'icon' => 'graduation-cap'],
-                                ['label' => 'Guardians', 'route' => 'admin.guardians.index', 'icon' => 'users'],
+                                ['label' => 'Users', 'route' => 'admin.users.index', 'icon' => 'users'],
                             ],
                         ],
                         'School Records' => [
                             'icon' => 'layers',
                             'items' => [
                                 ['label' => 'Sections', 'route' => 'admin.sections.index', 'icon' => 'layers'],
+                                ['label' => 'Subjects', 'route' => 'admin.subjects.index', 'icon' => 'scroll-text'],
                             ],
                         ],
                         'Attendance' => [
                             'icon' => 'scan-line',
                             'items' => [
                                 ['label' => 'QR Scanner', 'route' => 'scanner.index', 'icon' => 'qr-code'],
-                                ['label' => 'Corrections', 'route' => 'attendance-corrections.index', 'icon' => 'clipboard-check'],
+                                ['label' => 'Class Attendance', 'route' => 'teacher-scanner.index', 'icon' => 'camera'],
                                 ['label' => 'Reports', 'route' => 'admin.reports.index', 'icon' => 'bar-chart'],
                             ],
                         ],
-                        'Communication' => [
+                        'Announcements' => [
                             'icon' => 'megaphone',
                             'items' => [
                                 ['label' => 'Announcements', 'route' => 'announcements.index', 'icon' => 'megaphone'],
@@ -72,7 +73,7 @@
                             ],
                         ],
                     ],
-                    $user->isSubAdmin() => [
+                    $user->isTeachingStaff() => [
                         'Overview' => [
                             'icon' => 'dashboard',
                             'items' => [
@@ -80,20 +81,18 @@
                             ],
                         ],
                         'Students' => [
-                            'icon' => 'graduation-cap',
+                            'icon' => 'users',
                             'items' => [
-                                ['label' => 'Student Information', 'route' => 'sub-admin.students.index', 'icon' => 'graduation-cap'],
-                                ['label' => 'My Roster', 'route' => 'sub-admin.roster.index', 'icon' => 'users'],
+                                ['label' => 'Student Attendance', 'route' => 'sub-admin.roster.index', 'icon' => 'users'],
                             ],
                         ],
                         'Attendance' => [
                             'icon' => 'scan-line',
                             'items' => [
-                                ['label' => 'QR Scanner', 'route' => 'scanner.index', 'icon' => 'qr-code'],
-                                ['label' => 'Corrections', 'route' => 'attendance-corrections.index', 'icon' => 'clipboard-check'],
+                                ['label' => 'QR Scanner', 'route' => 'teacher-scanner.index', 'icon' => 'camera'],
                             ],
                         ],
-                        'Communication' => [
+                        'Announcements' => [
                             'icon' => 'megaphone',
                             'items' => [
                                 ['label' => 'Announcements', 'route' => 'announcements.index', 'icon' => 'megaphone'],
@@ -111,7 +110,6 @@
                             'icon' => 'scan-line',
                             'items' => [
                                 ['label' => 'QR Scanner', 'route' => 'scanner.index', 'icon' => 'qr-code'],
-                                ['label' => 'Corrections', 'route' => 'attendance-corrections.index', 'icon' => 'clipboard-check'],
                             ],
                         ],
                     ],
@@ -122,7 +120,7 @@
                                 ['label' => 'Dashboard', 'route' => 'parent.dashboard', 'icon' => 'dashboard'],
                             ],
                         ],
-                        'Communication' => [
+                        'Announcements' => [
                             'icon' => 'megaphone',
                             'items' => [
                                 ['label' => 'Announcements', 'route' => 'parent.announcements', 'icon' => 'megaphone'],
@@ -159,23 +157,37 @@
                         return request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*');
                     });
                 @endphp
-                <details class="group" @if ($groupActive) open @endif>
-                    <summary class="{{ $groupActive ? 'bg-white/15 text-white' : 'text-emerald-100 hover:bg-white/10 hover:text-white' }} flex cursor-pointer list-none items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-white/60">
-                        <x-ui.icon :name="$group['icon']" class="h-4 w-4 shrink-0" />
-                        <span class="flex-1">{{ $groupName }}</span>
-                        <x-ui.icon name="chevron-down" class="h-4 w-4 shrink-0 opacity-70 transition-transform group-open:rotate-180" />
-                    </summary>
-                    <div class="mt-1 ml-4 space-y-0.5 border-l border-white/15 py-1 pl-3">
-                        @foreach ($group['items'] as $item)
-                            @php $active = request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*'); @endphp
-                            <a href="{{ route($item['route']) }}"
-                               class="{{ $active ? 'bg-white text-emerald-900 shadow-sm' : 'text-emerald-100 hover:bg-white/10 hover:text-white' }} flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition">
-                                <x-ui.icon :name="$item['icon']" class="h-4 w-4 shrink-0" />
-                                {{ $item['label'] }}
-                            </a>
-                        @endforeach
-                    </div>
-                </details>
+
+                @if (count($group['items']) === 1)
+                    @php $item = $group['items'][0]; @endphp
+                    <a href="{{ route($item['route']) }}"
+                       @class([
+                           'flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-white/60',
+                           'bg-white text-emerald-900 shadow-sm' => $groupActive,
+                           'text-emerald-100 hover:bg-white/10 hover:text-white' => ! $groupActive,
+                       ])>
+                        <x-ui.icon :name="$item['icon']" class="h-4 w-4 shrink-0" />
+                        <span>{{ $item['label'] }}</span>
+                    </a>
+                @else
+                    <details class="group" @if ($groupActive) open @endif>
+                        <summary class="{{ $groupActive ? 'bg-white/15 text-white' : 'text-emerald-100 hover:bg-white/10 hover:text-white' }} flex cursor-pointer list-none items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-white/60">
+                            <x-ui.icon :name="$group['icon']" class="h-4 w-4 shrink-0" />
+                            <span class="flex-1">{{ $groupName }}</span>
+                            <x-ui.icon name="chevron-down" class="h-4 w-4 shrink-0 opacity-70 transition-transform group-open:rotate-180" />
+                        </summary>
+                        <div class="mt-1 ml-4 space-y-0.5 border-l border-white/15 py-1 pl-3">
+                            @foreach ($group['items'] as $item)
+                                @php $active = request()->routeIs($item['route']) || request()->routeIs($item['route'] . '.*'); @endphp
+                                <a href="{{ route($item['route']) }}"
+                                   class="{{ $active ? 'bg-white text-emerald-900 shadow-sm' : 'text-emerald-100 hover:bg-white/10 hover:text-white' }} flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition">
+                                    <x-ui.icon :name="$item['icon']" class="h-4 w-4 shrink-0" />
+                                    {{ $item['label'] }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </details>
+                @endif
             @endforeach
         </nav>
     </aside>
@@ -196,13 +208,6 @@
 
         <main class="flex-1 overflow-y-auto p-4 lg:p-8">
             <x-ui.breadcrumb :items="$breadcrumbs" />
-
-            @if (session('success'))
-                <x-ui.alert type="success">{{ session('success') }}</x-ui.alert>
-            @endif
-            @if ($errors->any())
-                <x-ui.alert type="error">{{ $errors->first() }}</x-ui.alert>
-            @endif
 
             {{ $slot }}
         </main>

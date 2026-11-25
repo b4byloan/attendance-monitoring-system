@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\LoadsNotificationBell;
+use App\Models\Announcement;
 use App\Models\AttendanceRecord;
+use App\Models\GuardianLinkRequest;
+use App\Models\Section;
 use App\Models\Student;
+use App\Notifications\GuardianLinkRequestedNotification;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Announcement;
-use App\Http\Controllers\Concerns\LoadsNotificationBell;
+use Illuminate\Validation\Rule;
 
 class ParentPortalController extends Controller
 {
-     use LoadsNotificationBell;
+    use LoadsNotificationBell;
+
     public function index(Request $request)
     {
         $guardian = $request->user()->guardian;
@@ -76,15 +82,127 @@ class ParentPortalController extends Controller
         if ($request->filled('date')) {
             $query->where('attendance_date', $request->input('date'));
         } elseif ($request->filled('month')) {
-            $query->where('attendance_date', 'like', $request->input('month') . '-%');
+            $query->where('attendance_date', 'like', $request->input('month').'-%');
         }
 
         $records = $query->orderByDesc('attendance_date')
             ->orderByDesc('scanned_at')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         return view('parent.attendance', compact('student', 'students', 'records'));
+    }
+
+    public function linkStudent(Request $request)
+    {
+        $guardian = $request->user()->guardian;
+
+        $requests = $guardian
+            ? GuardianLinkRequest::with('student.section')
+                ->where('guardian_id', $guardian->id)
+                ->latest()
+                ->get()
+            : collect();
+
+        $sections = Section::query()
+            ->orderBy('grade_level')
+            ->orderBy('name')
+            ->get(['id', 'name', 'grade_level']);
+
+        return view('parent.link-student', [
+            'guardian' => $guardian,
+            'requests' => $requests,
+            'sections' => $sections,
+            'gradeLevels' => $sections->pluck('grade_level')->unique()->values(),
+        ])->with($this->notificationBellData());
+    }
+
+    public function storeLinkRequest(Request $request)
+    {
+        $guardian = $request->user()->guardian;
+
+        abort_unless($guardian, 403, 'No guardian profile is linked to this account.');
+
+        $validated = $request->validate([
+            'lrn' => ['required', 'digits:12'],
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+            'grade_level' => ['required', 'string', Rule::exists('sections', 'grade_level')],
+            'section_id' => [
+                'required',
+                'integer',
+                Rule::exists('sections', 'id')->where('grade_level', $request->input('grade_level')),
+            ],
+        ]);
+
+        $student = Student::matchSchoolRecord(
+            lrn: $validated['lrn'],
+            firstName: $validated['first_name'],
+            lastName: $validated['last_name'],
+            sectionId: (int) $validated['section_id'],
+            gradeLevel: $validated['grade_level'],
+            middleName: $validated['middle_name'] ?? '',
+        );
+
+        if (! $student) {
+            return back()->withInput()->withErrors([
+                'lrn' => 'The details do not match any student record. Check the LRN, name including middle name, grade level, and section.',
+            ]);
+        }
+
+        if (! $student->user) {
+            return back()->withInput()->withErrors([
+                'lrn' => 'This student has not registered a portal account yet. Ask them to register first so they can approve the link.',
+            ]);
+        }
+
+        if ($guardian->students()->whereKey($student->id)->exists()) {
+            return back()->withInput()->withErrors(['lrn' => 'This student is already linked to your account.']);
+        }
+
+        $linkRequest = GuardianLinkRequest::firstOrNew([
+            'guardian_id' => $guardian->id,
+            'student_id' => $student->id,
+        ]);
+
+        if ($linkRequest->exists && $linkRequest->status === 'pending') {
+            return back()->withInput()->withErrors(['lrn' => 'A link request for this student is already waiting for approval.']);
+        }
+
+        $linkRequest->fill(['status' => 'pending', 'responded_at' => null])->save();
+
+        $student->user->notify(new GuardianLinkRequestedNotification(
+            guardianName: trim($guardian->first_name.' '.$guardian->last_name),
+            relationship: $guardian->relationship_to_student ?: 'Guardian',
+        ));
+
+        return redirect()->route('parent.link-student.index')
+            ->with('success', 'Link request sent. The student will approve or deny it from their portal.');
+    }
+
+    public function destroyLinkRequest(Request $request, GuardianLinkRequest $linkRequest): RedirectResponse
+    {
+        $guardian = $request->user()->guardian;
+
+        abort_unless($guardian && $linkRequest->guardian_id === $guardian->id, 403);
+
+        $linkRequest->delete();
+
+        return redirect()->route('parent.link-student.index')
+            ->with('success', 'Link request deleted.');
+    }
+
+    public function destroyAllLinkRequests(Request $request): RedirectResponse
+    {
+        $guardian = $request->user()->guardian;
+
+        abort_unless($guardian, 403, 'No guardian profile is linked to this account.');
+
+        GuardianLinkRequest::where('guardian_id', $guardian->id)->delete();
+
+        return redirect()->route('parent.link-student.index')
+            ->with('success', 'All link requests deleted.');
     }
 
     private function authorizeAccess(Student $student): void
@@ -96,7 +214,7 @@ class ParentPortalController extends Controller
         }
     }
 
-        public function announcements(Request $request)
+    public function announcements(Request $request)
     {
         $guardian = $request->user()->guardian;
         $students = $guardian?->students ?? collect();
@@ -108,8 +226,9 @@ class ParentPortalController extends Controller
             })
             ->orderByDesc('is_pinned')
             ->orderByDesc('publish_date')
-            ->paginate(20);
+            ->paginate(10);
 
-        return view('parent.announcements', compact('announcements'));
+        return view('parent.announcements', compact('announcements'))
+            ->with($this->notificationBellData());
     }
 }

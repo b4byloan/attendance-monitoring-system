@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Notifications\ResetPasswordNotification;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -35,6 +36,16 @@ class User extends Authenticatable
         return $this->hasMany(Section::class, 'adviser_id');
     }
 
+    public function sections()
+    {
+        return $this->belongsToMany(Section::class, 'section_user')->withTimestamps();
+    }
+
+    public function subjects()
+    {
+        return $this->belongsToMany(Subject::class, 'subject_user')->withTimestamps();
+    }
+
     public function attendanceRecords()
     {
         return $this->hasMany(AttendanceRecord::class, 'recorded_by');
@@ -60,11 +71,20 @@ class User extends Authenticatable
         return match ($this->role) {
             'admin' => 'admin.dashboard',
             'sub_admin' => 'sub-admin.dashboard',
+            'teacher' => 'sub-admin.dashboard',
             'parent' => 'parent.dashboard',
             'guard' => 'guard.dashboard',
             'student' => 'student.dashboard',
             default => 'login',
         };
+    }
+
+    /**
+     * Use the school-branded reset mail instead of Laravel's default one.
+     */
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 
     public function isAdmin(): bool
@@ -75,6 +95,19 @@ class User extends Authenticatable
     public function isSubAdmin(): bool
     {
         return $this->role === 'sub_admin';
+    }
+
+    public function isTeacher(): bool
+    {
+        return $this->role === 'teacher';
+    }
+
+    /**
+     * Sub-Admins and Teachers both handle class sections and subjects.
+     */
+    public function isTeachingStaff(): bool
+    {
+        return $this->isSubAdmin() || $this->isTeacher();
     }
 
     public function isParent(): bool
@@ -102,9 +135,17 @@ class User extends Authenticatable
     {
         return [
             'admin' => 'Admin',
-            'sub_admin' => 'Teacher',
+            'sub_admin' => 'Sub-Admin',
+            'teacher' => 'Teacher',
             'guard' => 'Guard',
-            'parent' => 'Parent',
+            'parent' => 'Guardian',
+            'student' => 'Student',
         ];
+    }
+
+    /** @return array<int, string> */
+    public static function teachingRoles(): array
+    {
+        return ['sub_admin', 'teacher'];
     }
 }

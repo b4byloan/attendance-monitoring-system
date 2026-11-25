@@ -6,8 +6,10 @@ use App\Http\Controllers\Concerns\LoadsNotificationBell;
 use App\Http\Controllers\Controller;
 use App\Models\Section;
 use App\Models\Student;
-use App\Models\User;
+use App\Models\Subject;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 
 class StudentController extends Controller
@@ -16,20 +18,57 @@ class StudentController extends Controller
 
     public function index(Request $request)
     {
-        $query = Student::with('section');
+        $sort = (string) $request->input('sort');
+        $direction = strtolower((string) $request->input('direction')) === 'desc' ? 'desc' : 'asc';
+
+        $query = Student::with('section', 'user');
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
-                $q->where('id', $search)
-                    ->orWhere('lrn', 'like', "%{$search}%")
-                    ->orWhere('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%");
+                $q->where('students.id', $search)
+                    ->orWhere('students.lrn', 'like', "%{$search}%")
+                    ->orWhere('students.first_name', 'like', "%{$search}%")
+                    ->orWhere('students.last_name', 'like', "%{$search}%")
+                    ->orWhereHas('user', fn ($user) => $user->where('email', 'like', "%{$search}%"));
             });
         }
 
-        $students = $query->orderBy('last_name')->paginate(20)->withQueryString();
+        $this->applySorting($query, $sort, $direction);
+
+        $students = $query->paginate(10)->withQueryString();
 
         return view('admin.students.index', compact('students'))->with($this->notificationBellData());
+    }
+
+    private function applySorting(Builder $query, string $sort, string $direction): void
+    {
+        $sortable = [
+            'lrn' => 'students.lrn',
+            'name' => 'students.last_name',
+            'section' => 'sections.name',
+            'email' => 'users.email',
+            'status' => 'students.status',
+        ];
+
+        if (! array_key_exists($sort, $sortable)) {
+            $query->orderBy('students.last_name')->orderBy('students.first_name');
+
+            return;
+        }
+
+        if ($sort === 'section') {
+            $query->leftJoin('sections', 'sections.id', '=', 'students.section_id')->select('students.*');
+        }
+
+        if ($sort === 'email') {
+            $query->leftJoin('users', 'users.id', '=', 'students.user_id')->select('students.*');
+        }
+
+        $query->orderBy($sortable[$sort], $direction);
+
+        if ($sort === 'name') {
+            $query->orderBy('students.first_name', $direction);
+        }
     }
 
     public function create()
@@ -60,18 +99,42 @@ class StudentController extends Controller
         return redirect()->route('admin.students.index')->with('success', 'Student added.');
     }
 
-    public function show(Student $student)
+    public function show(Request $request, Student $student)
     {
-        $student->load('section.adviser', 'guardians', 'attendanceRecords');
+        $student->load('section.adviser', 'guardians', 'user');
 
-        return view('admin.students.show', compact('student'))->with($this->notificationBellData());
-    }
+        $subjects = Subject::query()->where('status', 'active')->orderBy('name')->get();
+        $selectedSubjectId = $request->integer('subject') ?: null;
 
-    public function edit(Student $student)
-    {
-        $sections = Section::orderBy('name')->get();
+        if ($selectedSubjectId && ! $subjects->contains('id', $selectedSubjectId)) {
+            $selectedSubjectId = null;
+        }
 
-        return view('admin.students.edit', compact('student', 'sections'))->with($this->notificationBellData());
+        $gateRecords = $student->attendanceRecords()
+            ->with('recordedBy')
+            ->orderByDesc('attendance_date')
+            ->orderByDesc('scanned_at')
+            ->paginate(10, ['*'], 'gate_page')
+            ->withQueryString();
+
+        $subjectRecords = $student->subjectAttendanceRecords()
+            ->with('subject', 'recordedBy')
+            ->when($selectedSubjectId, fn ($query) => $query->where('subject_id', $selectedSubjectId))
+            ->orderByDesc('attendance_date')
+            ->orderByDesc('scanned_at')
+            ->paginate(10, ['*'], 'subject_page')
+            ->withQueryString();
+
+        return view('admin.students.show', [
+            'student' => $student,
+            'subjects' => $subjects,
+            'sections' => Section::orderBy('name')->get(['id', 'name']),
+            'selectedSubjectId' => $selectedSubjectId,
+            'gateRecords' => $gateRecords,
+            'subjectRecords' => $subjectRecords,
+            'attendanceCount' => $student->attendanceRecords()->count(),
+            'activeTab' => $request->input('tab', 'information'),
+        ])->with($this->notificationBellData());
     }
 
     public function update(Request $request, Student $student)
@@ -114,27 +177,20 @@ class StudentController extends Controller
         return redirect()->route('admin.students.index')->with('success', 'Student deleted.');
     }
 
-    public function createAccount(Request $request, Student $student)
+    public function resetPassword(Student $student)
     {
-        if ($student->user_id) {
-            return back()->withErrors(['account' => 'This student already has a portal account.']);
+        $user = $student->user;
+
+        if (! $user || ! $user->email) {
+            return back()->withErrors(['password' => 'This student has not registered a portal account yet.']);
         }
 
-        $validated = $request->validate([
-            'account_email' => ['required', 'email', 'unique:users,email'],
-            'account_password' => ['required', 'string', 'min:8'],
-        ]);
+        $status = Password::sendResetLink(['email' => $user->email]);
 
-        $user = User::create([
-            'name' => $student->full_name,
-            'email' => $validated['account_email'],
-            'password' => $validated['account_password'],
-            'role' => 'student',
-            'is_active' => true,
-        ]);
+        if ($status === Password::RESET_LINK_SENT) {
+            return back()->with('success', 'Password reset email sent to '.$user->email.'.');
+        }
 
-        $student->update(['user_id' => $user->id]);
-
-        return back()->with('success', 'Student portal account created.');
+        return back()->withErrors(['password' => __($status)]);
     }
 }

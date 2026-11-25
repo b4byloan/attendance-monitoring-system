@@ -33,11 +33,22 @@ test('parent can register and is linked to a guardian record', function () {
     expect(Guardian::where('user_id', $user->id)->firstOrFail()->user->is($user))->toBeTrue();
 });
 
-test('student can register and is linked to a student record', function () {
+test('student can register and is linked to the matching student record', function () {
     $section = Section::create([
         'name' => 'Grade 10 - Rizal',
         'grade_level' => 'Grade 10',
         'school_year' => '2026-2027',
+    ]);
+
+    $student = Student::create([
+        'lrn' => '123456789012',
+        'first_name' => 'Juan',
+        'middle_name' => 'Dela',
+        'last_name' => 'Cruz',
+        'suffix' => 'Jr.',
+        'section_id' => $section->id,
+        'qr_code' => 'qr-juan-cruz',
+        'status' => 'active',
     ]);
 
     $response = $this->post('/register/student', [
@@ -45,6 +56,7 @@ test('student can register and is linked to a student record', function () {
         'first_name' => 'Juan',
         'middle_name' => 'Dela',
         'last_name' => 'Cruz',
+        'suffix' => 'Jr.',
         'grade_level' => 'Grade 10',
         'section_id' => $section->id,
         'email' => 'juan@example.com',
@@ -55,18 +67,114 @@ test('student can register and is linked to a student record', function () {
     $response->assertRedirect(route('student.dashboard'));
 
     $user = User::where('email', 'juan@example.com')->firstOrFail();
-    $student = Student::where('lrn', '123456789012')->firstOrFail();
+    $student->refresh();
 
     expect($user->role)->toBe('student')
         ->and($user->is_active)->toBeTrue()
-        ->and($user->name)->toBe('Juan Dela Cruz');
+        ->and($user->name)->toBe('Juan Dela Cruz Jr.');
 
     $this->assertAuthenticatedAs($user);
 
     expect($student->user_id)->toBe($user->id)
         ->and($student->section_id)->toBe($section->id)
-        ->and($student->status)->toBe('active')
-        ->and($student->full_name)->toBe('Juan Dela Cruz');
+        ->and($student->full_name)->toBe('Juan Dela Cruz Jr.');
+
+    $this->assertDatabaseCount('students', 1);
+});
+
+test('student registration rejects a suffix that does not match the school record', function () {
+    $section = Section::create([
+        'name' => 'Grade 10 - Rizal',
+        'grade_level' => 'Grade 10',
+        'school_year' => '2026-2027',
+    ]);
+
+    Student::create([
+        'lrn' => '123456789012',
+        'first_name' => 'Juan',
+        'last_name' => 'Cruz',
+        'suffix' => 'Jr.',
+        'section_id' => $section->id,
+        'qr_code' => 'qr-juan-cruz',
+        'status' => 'active',
+    ]);
+
+    $this->post('/register/student', [
+        'lrn' => '123456789012',
+        'first_name' => 'Juan',
+        'last_name' => 'Cruz',
+        'suffix' => 'Sr.',
+        'grade_level' => 'Grade 10',
+        'section_id' => $section->id,
+        'email' => 'juan@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertSessionHasErrors('lrn');
+
+    $this->assertDatabaseCount('users', 0);
+});
+
+test('student registration rejects details that do not match the school record', function () {
+    $section = Section::create([
+        'name' => 'Grade 10 - Rizal',
+        'grade_level' => 'Grade 10',
+        'school_year' => '2026-2027',
+    ]);
+
+    Student::create([
+        'lrn' => '123456789012',
+        'first_name' => 'Juan',
+        'last_name' => 'Cruz',
+        'section_id' => $section->id,
+        'qr_code' => 'qr-juan-cruz',
+        'status' => 'active',
+    ]);
+
+    $this->post('/register/student', [
+        'lrn' => '123456789012',
+        'first_name' => 'Pedro',
+        'last_name' => 'Cruz',
+        'grade_level' => 'Grade 10',
+        'section_id' => $section->id,
+        'email' => 'pedro@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertSessionHasErrors('lrn');
+
+    $this->assertDatabaseCount('users', 0);
+});
+
+test('student registration rejects a record that already has an account', function () {
+    $section = Section::create([
+        'name' => 'Grade 10 - Rizal',
+        'grade_level' => 'Grade 10',
+        'school_year' => '2026-2027',
+    ]);
+
+    $existingUser = User::factory()->create(['role' => 'student', 'is_active' => true]);
+
+    Student::create([
+        'lrn' => '123456789012',
+        'first_name' => 'Juan',
+        'last_name' => 'Cruz',
+        'section_id' => $section->id,
+        'qr_code' => 'qr-juan-cruz',
+        'status' => 'active',
+        'user_id' => $existingUser->id,
+    ]);
+
+    $this->post('/register/student', [
+        'lrn' => '123456789012',
+        'first_name' => 'Juan',
+        'last_name' => 'Cruz',
+        'grade_level' => 'Grade 10',
+        'section_id' => $section->id,
+        'email' => 'other@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertSessionHasErrors('lrn');
+
+    $this->assertDatabaseCount('users', 1);
 });
 
 test('student registration requires the section to match the grade level', function () {
@@ -122,7 +230,8 @@ test('registration page shows both registration tabs', function () {
     $this->get('/register')
         ->assertOk()
         ->assertSee('Parent Registration')
-        ->assertSee('Student Registration');
+        ->assertSee('Student Registration')
+        ->assertSee('name="suffix"', false);
 });
 
 test('registration requires valid account details', function () {

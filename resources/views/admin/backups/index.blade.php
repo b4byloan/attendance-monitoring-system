@@ -8,13 +8,6 @@
         </form>
     </div>
 
-    @if (session('success'))
-        <x-ui.alert type="success">{{ session('success') }}</x-ui.alert>
-    @endif
-    @if ($errors->any())
-        <x-ui.alert type="error">{{ $errors->first() }}</x-ui.alert>
-    @endif
-
     <x-ui.card>
         <x-ui.table>
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">

@@ -3,6 +3,8 @@
 use App\Models\AttendanceRecord;
 use App\Models\Section;
 use App\Models\Student;
+use App\Models\Subject;
+use App\Models\SubjectAttendanceRecord;
 use App\Models\User;
 
 it('limits sub-admin student information to assigned sections', function () {
@@ -50,10 +52,27 @@ it('limits sub-admin student information to assigned sections', function () {
         ->assertDontSee($otherStudent->full_name)
         ->assertSee('View all notifications');
 
+    $subject = Subject::create([
+        'name' => 'Mathematics',
+        'code' => 'MATH7',
+        'grade_level' => 'Grade 7',
+        'status' => 'active',
+    ]);
+
+    SubjectAttendanceRecord::create([
+        'student_id' => $assignedStudent->id,
+        'subject_id' => $subject->id,
+        'recorded_by' => $adviser->id,
+        'status' => 'present',
+        'attendance_date' => now()->toDateString(),
+        'scanned_at' => now(),
+    ]);
+
     $this->actingAs($adviser)
         ->get(route('sub-admin.roster.index'))
         ->assertOk()
-        ->assertSee($assignedStudent->full_name);
+        ->assertSee($assignedStudent->full_name)
+        ->assertDontSee($otherStudent->full_name);
 
     $this->actingAs($adviser)
         ->get(route('sub-admin.sections.students', $section))
@@ -82,7 +101,7 @@ it('limits sub-admin student information to assigned sections', function () {
         ->assertForbidden();
 
     $this->actingAs($adviser)
-        ->get(route('admin.students.edit', $assignedStudent))
+        ->get(route('admin.students.create'))
         ->assertForbidden();
 });
 
@@ -131,7 +150,10 @@ it('shows present today per assigned section on the sub-admin dashboard', functi
     $response = $this->actingAs($adviser)
         ->get(route('sub-admin.dashboard'))
         ->assertOk()
-        ->assertSee($section->name);
+        ->assertSee('My Sections')
+        ->assertSee(route('sub-admin.sections.index'), false)
+        ->assertSee($section->name)
+        ->assertSee(route('sub-admin.sections.students', $section), false);
 
     expect($response->viewData('sections'))->toHaveCount(1)
         ->and($response->viewData('sections')->first()->present_today)->toBe(1)

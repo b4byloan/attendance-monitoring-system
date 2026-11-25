@@ -12,14 +12,14 @@ class GuardController extends Controller
 
     public function dashboard(Request $request)
     {
-        $todaysScans = AttendanceRecord::with('student.section')
+        $query = AttendanceRecord::with('student.section')
             ->where('recorded_by', $request->user()->id)
-            ->where('attendance_date', now()->toDateString())
-            ->orderByDesc('scanned_at')
-            ->get();
+            ->where('attendance_date', now()->toDateString());
 
-        $checkInsToday = $todaysScans->where('type', 'check_in')->count();
-        $checkOutsToday = $todaysScans->where('type', 'check_out')->count();
+        $checkInsToday = (clone $query)->where('type', 'check_in')->count();
+        $checkOutsToday = (clone $query)->where('type', 'check_out')->count();
+
+        $todaysScans = $query->orderByDesc('scanned_at')->paginate(10);
 
         return view('guard.dashboard', compact('todaysScans', 'checkInsToday', 'checkOutsToday'))
             ->with($this->notificationBellData());

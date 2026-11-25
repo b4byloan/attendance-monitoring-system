@@ -31,10 +31,10 @@
         </x-ui.card>
     </div>
 
-    <x-ui.alert type="warning">
+    <x-ui.notice type="warning">
         "Absent Today" is Total Active Students minus Present Today — it can't yet tell a real absence
         from a non-school day, since there's no school calendar in the system.
-    </x-ui.alert>
+    </x-ui.notice>
 
     <x-ui.card class="mb-6">
         <div class="flex justify-between items-center mb-4">

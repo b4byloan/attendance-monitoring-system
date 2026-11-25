@@ -78,8 +78,20 @@
         function lookupOffline(token) {
             return new Promise(async (resolve) => {
                 const db = await openDb();
-                const request = db.transaction(STORE_DIRECTORY, 'readonly').objectStore(STORE_DIRECTORY).get(token);
-                request.onsuccess = () => resolve(request.result || null);
+                const store = db.transaction(STORE_DIRECTORY, 'readonly').objectStore(STORE_DIRECTORY);
+                const request = store.get(token);
+                request.onsuccess = () => {
+                    if (request.result) { resolve(request.result); return; }
+
+                    // Same tolerance as the server: a scanner that changes the
+                    // case of the decoded text should still find the student.
+                    const all = store.getAll();
+                    all.onsuccess = () => {
+                        const wanted = token.trim().toLowerCase();
+                        resolve((all.result || []).find((s) => String(s.qr_code).toLowerCase() === wanted) || null);
+                    };
+                    all.onerror = () => resolve(null);
+                };
                 request.onerror = () => resolve(null);
             });
         }
@@ -212,6 +224,13 @@
 
         window.addEventListener('online', () => { updateConnectionBadge(); refreshDirectory(); syncPendingRecords(); });
         window.addEventListener('offline', updateConnectionBadge);
+        // New students and regenerated QR codes are only recognised offline
+        // once the directory has been refreshed again, so keep it current
+        // instead of relying on the page having been loaded since the change.
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && navigator.onLine) refreshDirectory();
+        });
+        setInterval(() => { if (navigator.onLine) refreshDirectory(); }, 5 * 60 * 1000);
         updateConnectionBadge();
         refreshDirectory();
         updatePendingCount();
@@ -277,15 +296,33 @@
             document.getElementById('scan-result').innerHTML =
                 '<div class="bg-gray-400 text-white rounded-xl p-6 text-center"><p class="text-xl font-bold">Processing scan…</p></div>';
             if (navigator.onLine) {
+                let response = null;
                 try {
-                    const response = await fetch("{{ route('scanner.verify') }}", {
+                    response = await fetch("{{ route('scanner.verify') }}", {
                         method: "POST",
                         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content },
                         body: JSON.stringify({ token }),
                     });
-                    displayResult(await response.json(), false);
+                } catch (e) {
+                    // Real network failure - fall through to the offline copy.
+                }
+
+                if (response) {
+                    if (!response.ok) {
+                        // An expired session or a server error is not a bad QR
+                        // code; falling back to "Not Recognized" here hides the
+                        // actual problem and looks like the code stopped working.
+                        displayScanError(response.status);
+                        return;
+                    }
+
+                    try {
+                        displayResult(await response.json(), false);
+                    } catch (e) {
+                        displayScanError(response.status);
+                    }
                     return;
-                } catch (e) {}
+                }
             }
 
             const student = await lookupOffline(token);
@@ -299,6 +336,15 @@
                 time: outcome.time ? outcome.time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null,
                 student,
             }, true);
+        }
+
+        function displayScanError(status) {
+            const message = status === 419
+                ? 'Your sign-in session expired. Reload this page, sign in again, then scan.'
+                : 'The server could not save this scan (error ' + status + '). Check the connection and try again.';
+
+            document.getElementById('scan-result').innerHTML =
+                '<div class="bg-red-600 text-white rounded-xl p-6 text-center"><p class="text-2xl font-bold mb-1">\u2715 Scan Not Saved</p><p class="text-sm opacity-90">' + message + '</p></div>';
         }
 
         function photoOrInitial(s) {

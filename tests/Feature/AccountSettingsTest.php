@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\Section;
+use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -18,6 +20,41 @@ it('shows the account settings page to every role', function (string $role) {
         ->assertSee('Logout')
         ->assertSee($user->email);
 })->with(['admin', 'sub_admin', 'student', 'parent', 'guard']);
+
+it('shows linked student information in account settings', function () {
+    $user = User::factory()->create(['role' => 'student', 'is_active' => true]);
+    $section = Section::create([
+        'name' => 'Grade 7 - Rizal',
+        'grade_level' => 'Grade 7',
+        'school_year' => '2026-2027',
+    ]);
+    $student = Student::create([
+        'lrn' => '123456789097',
+        'first_name' => 'Portal',
+        'last_name' => 'Student',
+        'section_id' => $section->id,
+        'qr_code' => 'qr-portal-student',
+        'status' => 'active',
+        'user_id' => $user->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('account-settings.edit'))
+        ->assertOk()
+        ->assertSee('Student Information')
+        ->assertSee($student->full_name)
+        ->assertSee($student->lrn)
+        ->assertSee($section->grade_level)
+        ->assertSee($section->name);
+});
+
+it('redirects the old student profile page to account settings', function () {
+    $user = User::factory()->create(['role' => 'student', 'is_active' => true]);
+
+    $this->actingAs($user)
+        ->get(route('student.profile'))
+        ->assertRedirect(route('account-settings.edit'));
+});
 
 it('updates only the signed-in users own account', function () {
     $user = User::factory()->create(['role' => 'admin', 'name' => 'Old Name']);

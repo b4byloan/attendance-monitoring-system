@@ -20,7 +20,7 @@
                     @error('description')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
 
-                @if (auth()->user()->isAdmin())
+                @if ($allowSchoolWide)
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Audience</label>
                         <select name="section_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
@@ -34,6 +34,15 @@
                         <input type="checkbox" name="is_pinned" value="1" @checked(old('is_pinned', $announcement->is_pinned)) class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                         Pinned (shows at the top everywhere)
                     </label>
+                @elseif ($sections->count() > 1)
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Audience</label>
+                        <select name="section_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            @foreach ($sections as $section)
+                                <option value="{{ $section->id }}" @selected(old('section_id', $announcement->section_id) == $section->id)>{{ $section->name }} only</option>
+                            @endforeach
+                        </select>
+                    </div>
                 @else
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Audience</label>
