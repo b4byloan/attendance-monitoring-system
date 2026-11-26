@@ -12,6 +12,7 @@
         <x-ui.table>
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                 <tr>
+                    <th class="px-4 py-3 text-left">#</th>
                     <th class="px-4 py-3 text-left">Filename</th>
                     <th class="px-4 py-3 text-left">Created</th>
                     <th class="px-4 py-3 text-left">Size</th>
@@ -23,6 +24,7 @@
             <tbody class="divide-y">
                 @forelse ($backups as $backup)
                     <tr>
+                        <td class="px-4 py-3 text-sm text-gray-500">{{ $loop->iteration }}</td>
                         <td class="px-4 py-3 font-mono text-xs">{{ $backup['filename'] }}</td>
                         <td class="px-4 py-3 text-sm">{{ $backup['created_at']->format('M j, Y h:i A') }}</td>
                         <td class="px-4 py-3 text-sm">{{ number_format($backup['size'] / 1024 / 1024, 2) }} MB</td>
@@ -39,7 +41,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="6"><x-ui.empty-state message="No backups yet - create the first one above." /></td></tr>
+                    <tr><td colspan="7"><x-ui.empty-state message="No backups yet - create the first one above." /></td></tr>
                 @endforelse
             </tbody>
         </x-ui.table>

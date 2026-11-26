@@ -1,6 +1,6 @@
 <x-layout title="New Correction Request" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    <div class="max-w-2xl mx-auto">
+    <div class="max-w-3xl mx-auto">
         <x-ui.back-button :href="route('attendance-corrections.index')" label="Back to corrections" class="mb-4" />
 
         <h2 class="text-lg font-semibold text-gray-900 mb-6">New Correction Request</h2>
@@ -20,7 +20,7 @@
                     <div class="space-y-2">
                         @forelse ($student->attendanceRecords()->orderByDesc('attendance_date')->limit(10)->get() as $record)
                             <div class="flex justify-between items-center text-sm bg-gray-50 rounded-lg px-3 py-2.5">
-                                <span>{{ $record->attendance_date->format('M j, Y') }} — {{ $record->type === 'check_in' ? 'Check-In' : 'Check-Out' }} at {{ $record->scanned_at->format('h:i A') }}</span>
+                                <span>{{ $record->attendance_date->format('M j, Y') }} â€” {{ $record->type === 'check_in' ? 'Check-In' : 'Check-Out' }} at {{ $record->scanned_at->format('h:i A') }}</span>
                                 <a href="{{ route('attendance-corrections.create-for-record', $record) }}" class="text-indigo-600 hover:underline whitespace-nowrap ml-2">Request Correction</a>
                             </div>
                         @empty

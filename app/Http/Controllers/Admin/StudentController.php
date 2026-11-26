@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\LoadsNotificationBell;
+use App\Http\Controllers\Concerns\RedirectsAfterForm;
 use App\Http\Controllers\Controller;
 use App\Models\Section;
 use App\Models\Student;
@@ -11,10 +12,12 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class StudentController extends Controller
 {
     use LoadsNotificationBell;
+    use RedirectsAfterForm;
 
     public function index(Request $request)
     {
@@ -24,12 +27,22 @@ class StudentController extends Controller
         $query = Student::with('section', 'user');
 
         if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('students.id', $search)
-                    ->orWhere('students.lrn', 'like', "%{$search}%")
-                    ->orWhere('students.first_name', 'like', "%{$search}%")
-                    ->orWhere('students.last_name', 'like', "%{$search}%")
-                    ->orWhereHas('user', fn ($user) => $user->where('email', 'like', "%{$search}%"));
+            $terms = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+            $query->where(function ($q) use ($terms) {
+                foreach ($terms as $term) {
+                    $q->where(function ($q) use ($term) {
+                        if (ctype_digit($term)) {
+                            $q->orWhere('students.id', $term);
+                        }
+
+                        $q->orWhere('students.lrn', 'like', "%{$term}%")
+                            ->orWhere('students.first_name', 'like', "%{$term}%")
+                            ->orWhere('students.middle_name', 'like', "%{$term}%")
+                            ->orWhere('students.last_name', 'like', "%{$term}%")
+                            ->orWhereHas('user', fn ($user) => $user->where('email', 'like', "%{$term}%"));
+                    });
+                }
             });
         }
 
@@ -37,7 +50,10 @@ class StudentController extends Controller
 
         $students = $query->paginate(10)->withQueryString();
 
-        return view('admin.students.index', compact('students'))->with($this->notificationBellData());
+        return view('admin.students.index', [
+            'students' => $students,
+            'sections' => Section::orderBy('name')->get(['id', 'name']),
+        ])->with($this->notificationBellData());
     }
 
     private function applySorting(Builder $query, string $sort, string $direction): void
@@ -85,18 +101,19 @@ class StudentController extends Controller
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
-            'suffix' => ['nullable', 'string', 'max:255'],
+            'suffix' => ['nullable', Rule::in(Student::SUFFIXES)],
             'section_id' => ['required', 'exists:sections,id'],
         ]);
 
-        // Temporary placeholder until the real QR Code Management module exists.
-        // Not shown anywhere in the UI - just satisfies the required, unique column.
+        // Every student gets one permanent QR token. It is never regenerated,
+        // so printed QR codes remain valid for the student's whole stay.
         $validated['qr_code'] = Str::random(32);
         $validated['status'] = 'active';
 
         Student::create($validated);
 
-        return redirect()->route('admin.students.index')->with('success', 'Student added.');
+        return $this->redirectAfterForm($request, route('admin.students.index'))
+            ->with('success', 'Student added.');
     }
 
     public function show(Request $request, Student $student)
@@ -144,7 +161,7 @@ class StudentController extends Controller
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
-            'suffix' => ['nullable', 'string', 'max:255'],
+            'suffix' => ['nullable', Rule::in(Student::SUFFIXES)],
             'section_id' => ['required', 'exists:sections,id'],
             'status' => ['required', 'in:active,inactive,transferred,graduated'],
         ]);

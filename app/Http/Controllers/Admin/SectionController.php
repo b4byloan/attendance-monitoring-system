@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\LoadsNotificationBell;
+use App\Http\Controllers\Concerns\RedirectsAfterForm;
 use App\Http\Controllers\Controller;
 use App\Models\Section;
 use App\Models\User;
@@ -15,6 +16,7 @@ use Illuminate\View\View;
 class SectionController extends Controller
 {
     use LoadsNotificationBell;
+    use RedirectsAfterForm;
 
     public function index(Request $request): View
     {
@@ -30,7 +32,14 @@ class SectionController extends Controller
 
         $sections = $query->orderByDesc('school_year')->orderBy('name')->paginate(10)->withQueryString();
 
-        return view('admin.sections.index', compact('sections'))->with($this->notificationBellData());
+        $currentYear = now()->year;
+
+        return view('admin.sections.index', [
+            'sections' => $sections,
+            'teachers' => $this->teacherOptions(),
+            'schoolYearStart' => $currentYear,
+            'schoolYearEnd' => $currentYear + 1,
+        ])->with($this->notificationBellData());
     }
 
     public function create(): View
@@ -56,7 +65,8 @@ class SectionController extends Controller
         $section = Section::create($validated);
         $section->teachers()->sync($teacherIds);
 
-        return redirect()->route('admin.sections.index')->with('success', 'Section created.');
+        return $this->redirectAfterForm($request, route('admin.sections.index'))
+            ->with('success', 'Section created.');
     }
 
     public function show(Section $section): View
@@ -64,17 +74,11 @@ class SectionController extends Controller
         $section->load('adviser', 'teachers');
 
         $students = $section->students()->orderBy('last_name')->paginate(10);
-
-        return view('admin.sections.show', compact('section', 'students'))->with($this->notificationBellData());
-    }
-
-    public function edit(Section $section): View
-    {
-        $section->load('teachers');
         [$schoolYearStart, $schoolYearEnd] = array_pad(explode('-', $section->school_year, 2), 2, '');
 
-        return view('admin.sections.edit', [
+        return view('admin.sections.show', [
             'section' => $section,
+            'students' => $students,
             'teachers' => $this->teacherOptions(),
             'schoolYearStart' => $schoolYearStart,
             'schoolYearEnd' => $schoolYearEnd,
@@ -135,10 +139,10 @@ class SectionController extends Controller
                     ->where(fn ($query) => $query->where('school_year', $schoolYear))
                     ->ignore($ignoreId),
             ],
-            'grade_level' => ['required', 'string', 'max:255'],
+            'grade_level' => ['required', Rule::in(Section::GRADE_LEVELS)],
             'school_year_start' => ['required', 'integer', 'digits:4', 'min:1000', 'max:9999'],
             'school_year_end' => ['required', 'integer', 'digits:4', 'min:1000', 'max:9999', Rule::in([$nextSchoolYear])],
-            'max_capacity' => ['nullable', 'integer', 'min:1', 'max:60'],
+            'max_capacity' => ['required', 'integer', 'min:1', 'max:60'],
             'status' => ['nullable', 'in:active,inactive'],
             'teacher_ids' => ['nullable', 'array'],
             'teacher_ids.*' => [

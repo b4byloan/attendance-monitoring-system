@@ -44,6 +44,7 @@
             <table class="w-full min-w-max text-left">
                 <thead class="bg-gray-50 text-sm text-gray-600">
                     <tr>
+                        <th class="px-4 py-3">#</th>
                         <th class="px-4 py-3">Date</th>
                         <th class="px-4 py-3">Type</th>
                         <th class="px-4 py-3">Time</th>
@@ -52,12 +53,13 @@
                 <tbody class="divide-y">
                     @forelse ($records as $record)
                         <tr>
+                            <td class="px-4 py-3 text-gray-500">{{ $records->firstItem() + $loop->index }}</td>
                             <td class="px-4 py-3">{{ $record->attendance_date->format('M j, Y') }}</td>
                             <td class="px-4 py-3">{{ $record->type === 'check_in' ? 'Check-In' : 'Check-Out' }}</td>
                             <td class="px-4 py-3">{{ $record->scanned_at->format('h:i A') }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="3" class="px-4 py-6 text-center text-gray-400">No records for this period.</td></tr>
+                        <tr><td colspan="4" class="px-4 py-6 text-center text-gray-400">No records for this period.</td></tr>
                     @endforelse
                 </tbody>
             </table>

@@ -20,7 +20,7 @@ class AttendanceCorrectionController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        $canReview = $user->isAdmin() || $user->isSubAdmin();
+        $canReview = $user->isAdmin() || $user->isTeachingStaff();
 
         if ($canReview) {
             $query = AttendanceCorrection::with('student', 'requestedBy', 'reviewedBy', 'attendanceRecord');

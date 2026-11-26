@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\LoadsNotificationBell;
+use App\Http\Controllers\Concerns\RedirectsAfterForm;
 use App\Http\Controllers\Controller;
 use App\Models\Subject;
 use App\Models\User;
@@ -16,6 +17,7 @@ use Illuminate\View\View;
 class SubjectController extends Controller
 {
     use LoadsNotificationBell;
+    use RedirectsAfterForm;
 
     public function index(Request $request): View
     {
@@ -24,14 +26,16 @@ class SubjectController extends Controller
         if ($search = $request->input('search')) {
             $query->where(function ($query) use ($search): void {
                 $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('code', 'like', "%{$search}%")
-                    ->orWhere('grade_level', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%");
             });
         }
 
         $subjects = $query->orderBy('name')->paginate(10)->withQueryString();
 
-        return view('admin.subjects.index', compact('subjects'))->with($this->notificationBellData());
+        return view('admin.subjects.index', [
+            'subjects' => $subjects,
+            'teachers' => $this->teacherOptions(),
+        ])->with($this->notificationBellData());
     }
 
     public function create(): View
@@ -49,14 +53,16 @@ class SubjectController extends Controller
         $subject = Subject::create($validated);
         $subject->teachers()->sync($validated['teacher_ids'] ?? []);
 
-        return redirect()->route('admin.subjects.index')->with('success', 'Subject created.');
+        return $this->redirectAfterForm($request, route('admin.subjects.index'))
+            ->with('success', 'Subject created.');
     }
 
-    public function edit(Subject $subject): View
+    public function show(Subject $subject): View
     {
         $subject->load('teachers');
+        $subject->loadCount('attendanceRecords');
 
-        return view('admin.subjects.edit', [
+        return view('admin.subjects.show', [
             'subject' => $subject,
             'teachers' => $this->teacherOptions(),
         ])->with($this->notificationBellData());
@@ -100,12 +106,8 @@ class SubjectController extends Controller
     {
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'code' => [
-                'required', 'string', 'max:30', 'alpha_dash',
-                Rule::unique('subjects', 'code')->ignore($ignoreId),
-            ],
-            'grade_level' => ['nullable', 'numeric', 'min:0', 'max:10'],
-            'description' => ['nullable', 'string', 'max:50'],
+            'code' => ['required', 'string', 'max:30', 'alpha_dash', Rule::unique('subjects', 'code')->ignore($ignoreId)],
+            'description' => ['required', 'string', 'max:50'],
             'status' => ['required', 'in:active,inactive'],
             'teacher_ids' => ['nullable', 'array'],
             'teacher_ids.*' => [

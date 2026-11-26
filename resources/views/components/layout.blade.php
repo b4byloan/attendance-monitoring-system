@@ -128,27 +128,6 @@
                         ],
                     ],
                 };
-
-                $currentRoute = request()->route()?->getName() ?? '';
-                $breadcrumbs = [];
-
-                if ($currentRoute !== '' && ! str_ends_with($currentRoute, '.dashboard')) {
-                    foreach ($navGroups as $groupName => $group) {
-                        foreach ($group['items'] as $item) {
-                            $resourcePrefix = str_ends_with($item['route'], '.index')
-                                ? substr($item['route'], 0, -strlen('index'))
-                                : null;
-
-                            if ($currentRoute === $item['route'] || ($resourcePrefix !== null && str_starts_with($currentRoute, $resourcePrefix))) {
-                                $breadcrumbs = [
-                                    ['label' => $groupName, 'url' => null],
-                                    ['label' => $item['label'], 'url' => $currentRoute === $item['route'] ? null : route($item['route'])],
-                                ];
-                                break 2;
-                            }
-                        }
-                    }
-                }
             @endphp
 
             @foreach ($navGroups as $groupName => $group)
@@ -207,8 +186,6 @@
         </header>
 
         <main class="flex-1 overflow-y-auto p-4 lg:p-8">
-            <x-ui.breadcrumb :items="$breadcrumbs" />
-
             {{ $slot }}
         </main>
     </div>
@@ -226,6 +203,18 @@ document.addEventListener('submit', function (e) {
 });
 </script>
 @include('partials.copy-to-clipboard')
+@include('partials.input-masks')
+@if (old('_modal'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById(@json(old('_modal')));
+
+            if (modal && typeof modal.showModal === 'function') {
+                modal.showModal();
+            }
+        });
+    </script>
+@endif
 @stack('scripts')
 </body>
 </html>

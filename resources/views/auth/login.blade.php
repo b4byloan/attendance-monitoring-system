@@ -70,13 +70,16 @@
                     @csrf
                     <div>
                         <label for="email" class="block text-sm font-semibold text-slate-700">Email address</label>
-                        <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="email"
-                               class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                        <x-auth.field icon="mail" name="email">
+                            <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="email"
+                                   class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none placeholder:text-slate-400 focus:ring-0">
+                        </x-auth.field>
                     </div>
                     <div>
                         <label for="password" class="block text-sm font-semibold text-slate-700">Password</label>
-                        <x-ui.password-input id="password" name="password" autocomplete="current-password" :required="true"
-                               class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
+                        <x-auth.field icon="lock" name="password">
+                            <x-ui.password-input id="password" name="password" autocomplete="current-password" :required="true" grouped />
+                        </x-auth.field>
                     </div>
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <label class="flex items-center gap-2 text-sm text-slate-600">

@@ -35,8 +35,10 @@
                         <p class="text-xs text-gray-500">
                             {{ $linkRequest->guardian->relationship_to_student ?? 'Guardian' }}
                             · {{ $linkRequest->guardian->phone_number }}
+                            <x-ui.copy-button :value="$linkRequest->guardian->phone_number" what="phone number" :icon-only="true" class="ml-1 align-middle" />
                             @if ($linkRequest->guardian->email)
                                 · {{ $linkRequest->guardian->email }}
+                                <x-ui.copy-button :value="$linkRequest->guardian->email" what="email" :icon-only="true" class="ml-1 align-middle" />
                             @endif
                         </p>
                         <p class="mt-1 text-[11px] text-gray-400">Requested {{ $linkRequest->created_at->format('M j, Y h:i A') }}</p>

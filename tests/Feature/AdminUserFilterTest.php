@@ -34,5 +34,5 @@ it('filters the user list by the student role', function () {
         ->assertSee('Student Records')
         ->assertSee($student->full_name)
         ->assertDontSee('Parent Account')
-        ->assertSee('value="student" selected', false);
+        ->assertDontSee('All Roles');
 });

@@ -2,16 +2,18 @@
 
     <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <h2 class="text-lg font-semibold text-gray-900">All Students</h2>
-        <x-ui.button href="{{ route('admin.students.create') }}"><x-ui.icon name="plus" class="h-4 w-4" /> Add Student</x-ui.button>
+        <x-ui.button type="button" onclick="document.getElementById('add-student-modal').showModal()"><x-ui.icon name="plus" class="h-4 w-4" /> Add Student</x-ui.button>
     </div>
 
     <x-ui.card class="mb-6">
         <form method="GET" class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[200px]">
                 <label class="block text-xs text-gray-500 mb-1">Search</label>
-                <input type="text" name="search" value="{{ request('search') }}"
-                       placeholder="Search by LRN, name, or ID"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <x-ui.form-field icon="search">
+                    <input type="text" name="search" value="{{ request('search') }}"
+                           placeholder="Search by LRN, name, or ID"
+                           class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
+                </x-ui.form-field>
             </div>
             <x-ui.button type="submit" variant="secondary">Search</x-ui.button>
             @if (request('search'))
@@ -47,7 +49,10 @@
                         <td class="px-4 py-3">{{ $student->section->name ?? '—' }}</td>
                         <td class="px-4 py-3">
                             @if ($student->user?->email)
-                                {{ $student->user->email }}
+                                <span class="flex flex-wrap items-center gap-2">
+                                    {{ $student->user->email }}
+                                    <x-ui.copy-button :value="$student->user->email" what="email" :icon-only="true" />
+                                </span>
                             @else
                                 <span class="text-xs text-gray-400">Not registered</span>
                             @endif
@@ -71,11 +76,7 @@
                 @empty
                     <tr>
                         <td colspan="7">
-                            <x-ui.empty-state message="No students yet.">
-                                <x-slot:action>
-                                    <x-ui.button href="{{ route('admin.students.create') }}" size="sm">+ Add your first student</x-ui.button>
-                                </x-slot:action>
-                            </x-ui.empty-state>
+                            <x-ui.empty-state message="No students yet." />
                         </td>
                     </tr>
                 @endforelse
@@ -110,5 +111,9 @@
             This only works if this student has no attendance history. Otherwise, deactivating them is the correct option instead.
         </x-ui.confirm-modal>
     @endforeach
+
+    <x-ui.form-modal id="add-student-modal" title="Add Student" action="{{ route('admin.students.store') }}" submit-label="Save Student">
+        @include('admin.students._form')
+    </x-ui.form-modal>
 
 </x-layout>

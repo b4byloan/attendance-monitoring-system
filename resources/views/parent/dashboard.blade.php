@@ -1,18 +1,22 @@
 <x-simple-layout title="Parent Dashboard" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div>
-            <p class="text-sm text-gray-500">Hello,</p>
-            <h2 class="text-xl font-bold text-gray-900">{{ auth()->user()->name }}</h2>
+        <div class="flex items-center gap-4">
+            <x-ui.avatar :name="auth()->user()->name" size="lg" />
+            <div>
+                <p class="text-sm text-gray-500">Hello,</p>
+                <h2 class="text-xl font-bold text-gray-900">{{ auth()->user()->name }}</h2>
+            </div>
         </div>
-        <x-ui.button href="{{ route('parent.link-student.index') }}" variant="secondary" size="sm">Link your account</x-ui.button>
+        <x-ui.button href="{{ route('parent.link-student.index') }}" variant="secondary" size="sm">Link your account to a student</x-ui.button>
     </div>
 
     @if ($students->count() > 1)
-        <div class="flex gap-2 mb-6 overflow-x-auto pb-1">
+        <div class="mb-6 flex gap-2 overflow-x-auto pb-1">
             @foreach ($students as $s)
                 <a href="{{ route('parent.students.dashboard', $s) }}"
-                   class="shrink-0 px-4 py-2.5 rounded-lg text-sm font-medium whitespace-nowrap {{ $s->id === $student->id ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700' }}">
+                   class="flex shrink-0 items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap {{ $s->id === $student->id ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700' }}">
+                    <x-ui.avatar :name="$s->full_name" :photo="$s->photo_path" size="xs" />
                     {{ $s->full_name }}
                 </a>
             @endforeach
@@ -21,12 +25,15 @@
 
     <x-ui.card class="mb-6">
         <div class="flex flex-wrap justify-between items-start gap-3 mb-4">
-            <div>
-                <h3 class="text-lg font-bold text-gray-900">{{ $student->full_name }}</h3>
-                <p class="text-sm text-gray-500">{{ $student->section->grade_level ?? '—' }} · {{ $student->section->name ?? 'No section' }}</p>
-                <div class="mt-1 flex flex-wrap items-center gap-2">
-                    <p class="text-sm text-gray-500">LRN: <span class="font-mono text-gray-700">{{ $student->lrn }}</span></p>
-                    <x-ui.copy-button :value="$student->lrn" />
+            <div class="flex items-center gap-4">
+                <x-ui.avatar :name="$student->full_name" :photo="$student->photo_path" size="lg" />
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900">{{ $student->full_name }}</h3>
+                    <p class="text-sm text-gray-500">{{ $student->section->grade_level ?? '—' }} · {{ $student->section->name ?? 'No section' }}</p>
+                    <div class="mt-1 flex flex-wrap items-center gap-2">
+                        <p class="text-sm text-gray-500">LRN: <span class="font-mono text-gray-700">{{ $student->lrn }}</span></p>
+                        <x-ui.copy-button :value="$student->lrn" />
+                    </div>
                 </div>
             </div>
             @if ($todayCheckIn && $todayCheckOut)

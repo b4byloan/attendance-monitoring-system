@@ -3,6 +3,7 @@
     'id' => null,
     'autocomplete' => 'new-password',
     'required' => false,
+    'grouped' => false,
 ])
 
 @php
@@ -15,7 +16,9 @@
            name="{{ $name }}"
            autocomplete="{{ $autocomplete }}"
            @if ($required) required @endif
-           {{ $attributes->merge(['class' => 'w-full rounded-lg border border-gray-300 px-3 py-2 pr-16 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500']) }}>
+           {{ $attributes->merge(['class' => $grouped
+               ? 'w-full border-0 bg-transparent px-4 py-3 pr-16 text-sm text-slate-900 outline-none focus:ring-0'
+               : 'w-full rounded-lg border border-gray-300 px-3 py-2 pr-16 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500']) }}>
 
     <button type="button"
             data-password-toggle

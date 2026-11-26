@@ -14,6 +14,13 @@ class Student extends Model
 {
     use HasFactory;
 
+    /**
+     * Suffixes accepted by the student forms (dropdown options).
+     *
+     * @var list<string>
+     */
+    public const SUFFIXES = ['Jr.', 'Sr.', 'II', 'III', 'IV', 'V'];
+
     protected $fillable = [
         'lrn',
         'first_name',
@@ -100,6 +107,7 @@ class Student extends Model
         }
 
         $normalize = fn (string $value): string => mb_strtolower(preg_replace('/\s+/', ' ', trim($value)) ?? '');
+        $normalizeSuffix = fn (?string $value): string => mb_strtolower(preg_replace('/[^a-z0-9]/i', '', (string) $value));
 
         $nameMatches = $normalize($student->first_name) === $normalize($firstName)
             && $normalize($student->last_name) === $normalize($lastName);
@@ -108,7 +116,7 @@ class Student extends Model
             || $normalize((string) $student->middle_name) === $normalize($middleName);
 
         $suffixMatches = $suffix === null
-            || $normalize((string) $student->suffix) === $normalize($suffix);
+            || $normalizeSuffix($student->suffix) === $normalizeSuffix($suffix);
 
         $sectionMatches = (int) $student->section_id === $sectionId;
         $gradeMatches = $normalize((string) $student->section?->grade_level) === $normalize($gradeLevel);

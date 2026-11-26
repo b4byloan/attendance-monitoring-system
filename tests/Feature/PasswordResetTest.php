@@ -10,7 +10,8 @@ use Illuminate\Support\Facades\Password;
 it('shows the forgot password link and pages', function () {
     $this->get(route('login'))
         ->assertOk()
-        ->assertSee('Forgot password?');
+        ->assertSee('Forgot password?')
+        ->assertSee('border-r border-slate-200', false);
 
     $this->get(route('password.request'))
         ->assertOk()

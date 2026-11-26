@@ -3,9 +3,12 @@
     :unread-count="$unreadCount ?? 0"
     :recent-notifications="$recentNotifications ?? collect()"
 >
-    <div class="text-center mb-6">
-        <p class="text-sm text-gray-500">Logged in as</p>
-        <p class="text-lg font-semibold text-gray-900">{{ auth()->user()->name }}</p>
+    <div class="mb-6 flex flex-col items-center gap-3 text-center">
+        <x-ui.avatar :name="auth()->user()->name" size="xl" />
+        <div>
+            <p class="text-sm text-gray-500">Logged in as</p>
+            <p class="text-lg font-semibold text-gray-900">{{ auth()->user()->name }}</p>
+        </div>
     </div>
 
     <a href="{{ route('scanner.index') }}"
@@ -37,6 +40,7 @@
         <x-ui.table>
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                 <tr>
+                    <th class="px-4 py-3 text-left">#</th>
                     <th class="px-4 py-3 text-left">Student</th>
                     <th class="px-4 py-3 text-left">Section</th>
                     <th class="px-4 py-3 text-left">Type</th>
@@ -46,6 +50,7 @@
             <tbody class="divide-y">
                 @forelse ($todaysScans as $scan)
                     <tr>
+                        <td class="px-4 py-3 text-sm text-gray-500">{{ $todaysScans->firstItem() + $loop->index }}</td>
                         <td class="px-4 py-3">{{ $scan->student->full_name }}</td>
                         <td class="px-4 py-3">{{ $scan->student->section->name ?? '—' }}</td>
                         <td class="px-4 py-3">
@@ -56,7 +61,7 @@
                         <td class="px-4 py-3">{{ $scan->scanned_at->format('h:i A') }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="4"><x-ui.empty-state message="No scans recorded yet today." /></td></tr>
+                    <tr><td colspan="5"><x-ui.empty-state message="No scans recorded yet today." /></td></tr>
                 @endforelse
             </tbody>
         </x-ui.table>

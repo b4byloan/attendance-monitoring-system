@@ -224,9 +224,9 @@
 
         window.addEventListener('online', () => { updateConnectionBadge(); refreshDirectory(); syncPendingRecords(); });
         window.addEventListener('offline', updateConnectionBadge);
-        // New students and regenerated QR codes are only recognised offline
-        // once the directory has been refreshed again, so keep it current
-        // instead of relying on the page having been loaded since the change.
+        // New students are only recognised offline once the directory has
+        // been refreshed again, so keep it current instead of relying on the
+        // page having been loaded since the change.
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden && navigator.onLine) refreshDirectory();
         });

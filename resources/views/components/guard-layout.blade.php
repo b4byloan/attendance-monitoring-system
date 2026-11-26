@@ -34,12 +34,13 @@
     </header>
 
     <main class="flex-1 overflow-y-auto p-4 sm:p-6">
-        <div class="mx-auto max-w-3xl">
+        <div class="mx-auto max-w-5xl">
             {{ $slot }}
         </div>
     </main>
 </div>
 @include('partials.copy-to-clipboard')
+@include('partials.input-masks')
 @stack('scripts')
 </body>
 </html>

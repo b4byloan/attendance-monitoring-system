@@ -43,11 +43,4 @@ class AuditLogController extends Controller
 
         return view('admin.audit-logs.index', compact('logs', 'actions'))->with($this->notificationBellData());
     }
-
-    public function show(ActivityLog $log)
-    {
-        $log->load('user');
-
-        return view('admin.audit-logs.show', compact('log'))->with($this->notificationBellData());
-    }
 }

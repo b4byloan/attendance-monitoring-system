@@ -2,23 +2,29 @@
 
     <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <h2 class="text-lg font-semibold text-gray-900">Announcements</h2>
-        <x-ui.button href="{{ route('announcements.create') }}"><x-ui.icon name="plus" class="h-4 w-4" /> Create Announcements</x-ui.button>
+        @if ($canCreate)
+            <x-ui.button type="button" onclick="document.getElementById('add-announcement-modal').showModal()"><x-ui.icon name="plus" class="h-4 w-4" /> Create Announcements</x-ui.button>
+        @endif
     </div>
 
-    <x-ui.card class="mb-6">
-        <form method="GET" class="flex flex-wrap gap-3 items-end">
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-xs text-gray-500 mb-1">Search by title</label>
-                <input type="text" name="search" value="{{ request('search') }}"
-                       placeholder="Search announcements by title"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <x-ui.button type="submit" variant="secondary">Search</x-ui.button>
-            @if (request('search'))
-                <a href="{{ route('announcements.index') }}" class="text-sm text-gray-500 hover:underline pb-2">Clear</a>
-            @endif
-        </form>
-    </x-ui.card>
+    <div class="sticky top-0 z-20 -mx-1 mb-6 bg-gray-50/95 px-1 py-2 backdrop-blur">
+        <x-ui.card>
+            <form method="GET" class="flex flex-wrap items-end gap-3">
+                <div class="min-w-[200px] flex-1">
+                    <label class="mb-1 block text-xs text-gray-500">Search by title</label>
+                    <x-ui.form-field icon="search">
+                        <input type="text" name="search" value="{{ request('search') }}"
+                               placeholder="Search announcements by title"
+                               class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
+                    </x-ui.form-field>
+                </div>
+                <x-ui.button type="submit" variant="secondary">Search</x-ui.button>
+                @if (request('search'))
+                    <a href="{{ route('announcements.index') }}" class="pb-2 text-sm text-gray-500 hover:underline">Clear</a>
+                @endif
+            </form>
+        </x-ui.card>
+    </div>
 
     <div class="space-y-4">
         @forelse ($announcements as $a)
@@ -58,13 +64,7 @@
             </x-ui.card>
         @empty
             <x-ui.card>
-                <x-ui.empty-state message="{{ request('search') ? 'No announcements match your search.' : 'No announcements yet.' }}">
-                    @if (! request('search'))
-                        <x-slot:action>
-                            <x-ui.button href="{{ route('announcements.create') }}" size="sm">Create Announcements</x-ui.button>
-                        </x-slot:action>
-                    @endif
-                </x-ui.empty-state>
+                <x-ui.empty-state message="{{ request('search') ? 'No announcements match your search.' : 'No announcements yet.' }}" />
             </x-ui.card>
         @endforelse
     </div>
@@ -84,5 +84,11 @@
             </x-ui.confirm-modal>
         @endif
     @endforeach
+
+    @if ($canCreate)
+        <x-ui.form-modal id="add-announcement-modal" title="New Announcement" action="{{ route('announcements.store') }}" submit-label="Publish / Save">
+            @include('announcements._form')
+        </x-ui.form-modal>
+    @endif
 
 </x-layout>

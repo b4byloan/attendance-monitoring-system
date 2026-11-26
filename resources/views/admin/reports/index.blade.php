@@ -104,6 +104,7 @@
         <x-ui.table>
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                 <tr>
+                    <th class="px-4 py-3 text-left">#</th>
                     <th class="px-4 py-3 text-left">Date</th>
                     <th class="px-4 py-3 text-left">Student</th>
                     <th class="px-4 py-3 text-left">Section</th>
@@ -114,6 +115,7 @@
             <tbody class="divide-y">
                 @forelse ($records as $record)
                     <tr>
+                        <td class="px-4 py-3 text-sm text-gray-500">{{ $records->firstItem() + $loop->index }}</td>
                         <td class="px-4 py-3">{{ $record->attendance_date->format('M j, Y') }}</td>
                         <td class="px-4 py-3">{{ $record->student->full_name }}</td>
                         <td class="px-4 py-3">{{ $record->student->section->name ?? '—' }}</td>
@@ -125,7 +127,7 @@
                         <td class="px-4 py-3">{{ $record->scanned_at->format('h:i A') }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="5"><x-ui.empty-state message="No records match these filters." /></td></tr>
+                    <tr><td colspan="6"><x-ui.empty-state message="No records match these filters." /></td></tr>
                 @endforelse
             </tbody>
         </x-ui.table>

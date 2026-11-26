@@ -41,7 +41,6 @@ class SettingController extends Controller
             'checkout_start_time' => ['nullable', 'date_format:H:i'],
             'checkout_cutoff_time' => ['nullable', 'date_format:H:i'],
             'late_threshold_minutes' => ['nullable', 'integer', 'min:0'],
-            'qr_expiration_days' => ['nullable', 'integer', 'min:1'],
             'qr_format' => ['required', 'in:png'],
             'qr_default_size' => ['required', 'integer', 'min:100', 'max:1000'],
             'sms_provider' => ['required', 'in:semaphore'],

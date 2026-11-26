@@ -56,6 +56,7 @@
         <x-ui.table>
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                 <tr>
+                    <th class="px-4 py-3 text-left">#</th>
                     <th class="px-4 py-3 text-left">LRN</th>
                     <th class="px-4 py-3 text-left">Name</th>
                     <th class="px-4 py-3 text-left">Section</th>
@@ -67,6 +68,7 @@
             <tbody class="divide-y">
                 @forelse ($students as $student)
                     <tr>
+                        <td class="px-4 py-3 text-sm text-gray-500">{{ $students->firstItem() + $loop->index }}</td>
                         <td class="px-4 py-3">
                             <span class="flex items-center gap-2">
                                 <span class="font-mono text-xs">{{ $student->lrn }}</span>
@@ -87,7 +89,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="6">
+                        <td colspan="7">
                             <x-ui.empty-state message="No students found in your assigned sections." />
                         </td>
                     </tr>

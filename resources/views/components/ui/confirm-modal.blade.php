@@ -11,8 +11,13 @@
 ])
 
 <dialog id="{{ $id }}" {{ $attributes->merge(['class' => 'w-full max-w-md rounded-lg p-0 shadow-xl backdrop:bg-black/40']) }}>
-    <div class="p-6">
-        <h3 class="mb-2 text-lg font-semibold text-gray-900">{{ $title }}</h3>
+    <div class="relative p-6">
+        <button type="button" onclick="document.getElementById('{{ $id }}').close()" aria-label="Close dialog"
+                class="absolute left-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+            <x-ui.icon name="x" class="h-4 w-4" />
+        </button>
+
+        <h3 class="mb-2 pl-8 text-lg font-semibold text-gray-900">{{ $title }}</h3>
         <div class="mb-4 text-sm text-gray-600">{{ $slot }}</div>
 
         <p class="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-800">

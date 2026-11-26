@@ -93,29 +93,38 @@
                         <input type="hidden" name="registration_type" value="parent">
                         <div>
                             <label for="name" class="block text-sm font-semibold text-slate-700">Full name</label>
-                            <input id="name" type="text" name="name" value="{{ old('registration_type') === 'parent' ? old('name') : '' }}" required @if ($activeTab === 'parent') autofocus @endif autocomplete="name"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                            <x-auth.field icon="user" name="name">
+                                <input id="name" type="text" name="name" value="{{ old('registration_type') === 'parent' ? old('name') : '' }}" required @if ($activeTab === 'parent') autofocus @endif autocomplete="name"
+                                       class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
+                            </x-auth.field>
                         </div>
                         <div>
                             <label for="email" class="block text-sm font-semibold text-slate-700">Email address</label>
-                            <input id="email" type="email" name="email" value="{{ old('registration_type') === 'parent' ? old('email') : '' }}" required autocomplete="email"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                            <x-auth.field icon="mail" name="email">
+                                <input id="email" type="email" name="email" value="{{ old('registration_type') === 'parent' ? old('email') : '' }}" required autocomplete="email"
+                                       class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
+                            </x-auth.field>
                         </div>
                         <div>
                             <label for="phone_number" class="block text-sm font-semibold text-slate-700">Phone number</label>
-                            <input id="phone_number" type="tel" name="phone_number" value="{{ old('registration_type') === 'parent' ? old('phone_number') : '' }}" required autocomplete="tel" inputmode="numeric" pattern="09[0-9]{9}" maxlength="11" title="Enter an 11-digit mobile number starting with 09"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                            <x-auth.field icon="phone" name="phone_number">
+                                <input id="phone_number" type="tel" name="phone_number" value="{{ old('registration_type') === 'parent' ? old('phone_number') : '' }}" required autocomplete="tel" inputmode="numeric" pattern="09[0-9]{9}" maxlength="11" title="Enter an 11-digit mobile number starting with 09"
+                                       class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
+                            </x-auth.field>
+                            <p class="mt-1 text-xs text-slate-500">Enter an 11-digit mobile number starting with 09.</p>
                         </div>
                         <div>
                             <label for="password" class="block text-sm font-semibold text-slate-700">Password</label>
-                            <x-ui.password-input id="password" name="password" autocomplete="new-password" :required="true"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
+                            <x-auth.field icon="lock" name="password">
+                                <x-ui.password-input id="password" name="password" autocomplete="new-password" :required="true" grouped />
+                            </x-auth.field>
                             <p class="mt-1 text-xs text-slate-500">Use at least 8 characters.</p>
                         </div>
                         <div>
                             <label for="password_confirmation" class="block text-sm font-semibold text-slate-700">Confirm password</label>
-                            <x-ui.password-input id="password_confirmation" name="password_confirmation" autocomplete="new-password" :required="true"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
+                            <x-auth.field icon="lock" name="password_confirmation">
+                                <x-ui.password-input id="password_confirmation" name="password_confirmation" autocomplete="new-password" :required="true" grouped />
+                            </x-auth.field>
                         </div>
                         <button type="submit" class="w-full rounded-lg bg-emerald-700 px-5 py-3 font-bold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">
                             Create parent account
@@ -135,71 +144,94 @@
                         </p>
                         <div>
                             <label for="lrn" class="block text-sm font-semibold text-slate-700">LRN (12 digits)</label>
-                            <input id="lrn" type="text" name="lrn" value="{{ old('registration_type') === 'student' ? old('lrn') : '' }}" required @if ($activeTab === 'student') autofocus @endif
-                                   inputmode="numeric" maxlength="12" pattern="\d{12}" autocomplete="off"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                            <x-auth.field icon="hash" name="lrn">
+                                <input id="lrn" type="text" name="lrn" value="{{ old('registration_type') === 'student' ? old('lrn') : '' }}" required @if ($activeTab === 'student') autofocus @endif
+                                       inputmode="numeric" maxlength="12" pattern="\d{12}" autocomplete="off"
+                                       class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
+                            </x-auth.field>
                         </div>
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <label for="first_name" class="block text-sm font-semibold text-slate-700">First name</label>
-                                <input id="first_name" type="text" name="first_name" value="{{ old('registration_type') === 'student' ? old('first_name') : '' }}" required autocomplete="given-name"
-                                       class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                                <x-auth.field icon="user" name="first_name">
+                                    <input id="first_name" type="text" name="first_name" value="{{ old('registration_type') === 'student' ? old('first_name') : '' }}" required autocomplete="given-name"
+                                           class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
+                                </x-auth.field>
                             </div>
                             <div>
                                 <label for="last_name" class="block text-sm font-semibold text-slate-700">Last name</label>
-                                <input id="last_name" type="text" name="last_name" value="{{ old('registration_type') === 'student' ? old('last_name') : '' }}" required autocomplete="family-name"
-                                       class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                                <x-auth.field icon="user" name="last_name">
+                                    <input id="last_name" type="text" name="last_name" value="{{ old('registration_type') === 'student' ? old('last_name') : '' }}" required autocomplete="family-name"
+                                           class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
+                                </x-auth.field>
                             </div>
                         </div>
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <label for="middle_name" class="block text-sm font-semibold text-slate-700">Middle name</label>
-                                <input id="middle_name" type="text" name="middle_name" value="{{ old('registration_type') === 'student' ? old('middle_name') : '' }}" autocomplete="additional-name"
-                                       class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                                <x-auth.field icon="user" name="middle_name">
+                                    <input id="middle_name" type="text" name="middle_name" value="{{ old('registration_type') === 'student' ? old('middle_name') : '' }}" autocomplete="additional-name"
+                                           class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
+                                </x-auth.field>
                             </div>
                             <div>
-                                <label for="suffix" class="block text-sm font-semibold text-slate-700">Suffix</label>
-                                <input id="suffix" type="text" name="suffix" value="{{ old('registration_type') === 'student' ? old('suffix') : '' }}" maxlength="20" autocomplete="honorific-suffix"
-                                       class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                                <label for="suffix" class="block text-sm font-semibold text-slate-700">Suffix <span class="mt-1 text-xs text-slate-500">(optional)</span></label>
+                                <x-auth.field icon="pencil" name="suffix">
+                                    <select id="suffix" name="suffix" autocomplete="honorific-suffix"
+                                            class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
+                                        <option value="">None</option>
+                                        @foreach (['Jr.', 'Sr.', 'II', 'III', 'IV', 'V'] as $suffixOption)
+                                            <option value="{{ $suffixOption }}" @selected(old('registration_type') === 'student' && old('suffix') === $suffixOption)>{{ $suffixOption }}</option>
+                                        @endforeach
+                                    </select>
+                                </x-auth.field>
                             </div>
                         </div>
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
                                 <label for="grade_level" class="block text-sm font-semibold text-slate-700">Grade level</label>
-                                <select id="grade_level" name="grade_level" required data-grade-level-select
-                                        class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
-                                    <option value="">Select grade level</option>
-                                    @foreach ($gradeLevels as $gradeLevel)
-                                        <option value="{{ $gradeLevel }}" @selected(old('registration_type') === 'student' && old('grade_level') === $gradeLevel)>{{ $gradeLevel }}</option>
-                                    @endforeach
-                                </select>
+                                <x-auth.field icon="graduation-cap" name="grade_level">
+                                    <select id="grade_level" name="grade_level" required data-grade-level-select
+                                            class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
+                                        <option value="">Select grade level</option>
+                                        @foreach ($gradeLevels as $gradeLevel)
+                                            <option value="{{ $gradeLevel }}" @selected(old('registration_type') === 'student' && old('grade_level') === $gradeLevel)>{{ $gradeLevel }}</option>
+                                        @endforeach
+                                    </select>
+                                </x-auth.field>
                             </div>
                             <div>
                                 <label for="section_id" class="block text-sm font-semibold text-slate-700">Section</label>
-                                <select id="section_id" name="section_id" required data-section-select
-                                        class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
-                                    <option value="">Select a section</option>
-                                    @foreach ($sections as $section)
-                                        <option value="{{ $section->id }}" data-grade-level="{{ $section->grade_level }}" @selected(old('registration_type') === 'student' && old('section_id') == $section->id)>{{ $section->name }}</option>
-                                    @endforeach
-                                </select>
+                                <x-auth.field icon="layers" name="section_id">
+                                    <select id="section_id" name="section_id" required data-section-select
+                                            class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
+                                        <option value="">Select a section</option>
+                                        @foreach ($sections as $section)
+                                            <option value="{{ $section->id }}" data-grade-level="{{ $section->grade_level }}" @selected(old('registration_type') === 'student' && old('section_id') == $section->id)>{{ $section->name }}</option>
+                                        @endforeach
+                                    </select>
+                                </x-auth.field>
                             </div>
                         </div>
                         <div>
                             <label for="student_email" class="block text-sm font-semibold text-slate-700">Email address</label>
-                            <input id="student_email" type="email" name="email" value="{{ old('registration_type') === 'student' ? old('email') : '' }}" required autocomplete="email"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100">
+                            <x-auth.field icon="mail" name="email">
+                                <input id="student_email" type="email" name="email" value="{{ old('registration_type') === 'student' ? old('email') : '' }}" required autocomplete="email"
+                                       class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
+                            </x-auth.field>
                         </div>
                         <div>
                             <label for="student_password" class="block text-sm font-semibold text-slate-700">Password</label>
-                            <x-ui.password-input id="student_password" name="password" autocomplete="new-password" :required="true"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
+                            <x-auth.field icon="lock" name="password">
+                                <x-ui.password-input id="student_password" name="password" autocomplete="new-password" :required="true" grouped />
+                            </x-auth.field>
                             <p class="mt-1 text-xs text-slate-500">Use at least 8 characters.</p>
                         </div>
                         <div>
                             <label for="student_password_confirmation" class="block text-sm font-semibold text-slate-700">Confirm password</label>
-                            <x-ui.password-input id="student_password_confirmation" name="password_confirmation" autocomplete="new-password" :required="true"
-                                   class="mt-2 block w-full rounded-lg border border-slate-300 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100" />
+                            <x-auth.field icon="lock" name="password_confirmation">
+                                <x-ui.password-input id="student_password_confirmation" name="password_confirmation" autocomplete="new-password" :required="true" grouped />
+                            </x-auth.field>
                         </div>
                         <button type="submit" class="w-full rounded-lg bg-emerald-700 px-5 py-3 font-bold text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:ring-offset-2">
                             Create student account
@@ -319,6 +351,30 @@
 
                     gradeLevelSelect.addEventListener('change', syncSections);
                     syncSections();
+                }
+
+                const parentPhoneInput = document.getElementById('phone_number');
+
+                if (parentPhoneInput) {
+                    parentPhoneInput.addEventListener('input', function () {
+                        parentPhoneInput.setCustomValidity('');
+
+                        let digits = parentPhoneInput.value.replace(/\D+/g, '');
+
+                        if (digits.startsWith('9')) {
+                            digits = '0' + digits;
+                        }
+
+                        parentPhoneInput.value = digits.slice(0, 11);
+                    });
+
+                    parentPhoneInput.addEventListener('blur', function () {
+                        parentPhoneInput.setCustomValidity(
+                            parentPhoneInput.value === '' || /^09\d{9}$/.test(parentPhoneInput.value)
+                                ? ''
+                                : 'Enter an 11-digit mobile number starting with 09.'
+                        );
+                    });
                 }
             });
         </script>

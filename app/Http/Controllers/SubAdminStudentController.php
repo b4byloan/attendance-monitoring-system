@@ -267,11 +267,21 @@ class SubAdminStudentController extends Controller
 
     private function applySearch(Builder $query, string $search): void
     {
-        $query->where(function (Builder $query) use ($search): void {
-            $query->where('id', $search)
-                ->orWhere('lrn', 'like', "%{$search}%")
-                ->orWhere('first_name', 'like', "%{$search}%")
-                ->orWhere('last_name', 'like', "%{$search}%");
+        $terms = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $query->where(function (Builder $query) use ($terms): void {
+            foreach ($terms as $term) {
+                $query->where(function (Builder $query) use ($term): void {
+                    if (ctype_digit($term)) {
+                        $query->orWhere('id', $term);
+                    }
+
+                    $query->orWhere('lrn', 'like', "%{$term}%")
+                        ->orWhere('first_name', 'like', "%{$term}%")
+                        ->orWhere('middle_name', 'like', "%{$term}%")
+                        ->orWhere('last_name', 'like', "%{$term}%");
+                });
+            }
         });
     }
 

@@ -1,13 +1,7 @@
 <x-simple-layout title="Student Dashboard" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
     <div class="flex items-center gap-4 mb-6">
-        @if ($student->photo_path)
-            <img src="{{ asset('storage/' . $student->photo_path) }}" class="w-16 h-16 rounded-full object-cover">
-        @else
-            <div class="w-16 h-16 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-xl font-bold">
-                {{ strtoupper(substr($student->first_name, 0, 1) . substr($student->last_name, 0, 1)) }}
-            </div>
-        @endif
+        <x-ui.avatar :name="$student->full_name" :photo="$student->photo_path" size="lg" />
         <div>
             <h2 class="text-xl font-bold text-gray-900">{{ $student->full_name }}</h2>
             <div class="mt-1 flex flex-wrap items-center gap-2">

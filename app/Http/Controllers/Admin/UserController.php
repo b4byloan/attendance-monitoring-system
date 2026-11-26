@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\LoadsNotificationBell;
+use App\Http\Controllers\Concerns\RedirectsAfterForm;
 use App\Http\Controllers\Controller;
 use App\Models\Guardian;
 use App\Models\Section;
@@ -12,12 +13,14 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class UserController extends Controller
 {
     use LoadsNotificationBell;
+    use RedirectsAfterForm;
 
     /** @var array<int, string> */
     private const ROLE_TABS = ['admin', 'teachers', 'guard'];
@@ -66,12 +69,22 @@ class UserController extends Controller
             $studentsQuery = Student::query()
                 ->with('section', 'user')
                 ->when($search !== '', function ($query) use ($search): void {
-                    $query->where(function ($query) use ($search): void {
-                        $query->where('students.id', $search)
-                            ->orWhere('students.lrn', 'like', "%{$search}%")
-                            ->orWhere('students.first_name', 'like', "%{$search}%")
-                            ->orWhere('students.last_name', 'like', "%{$search}%")
-                            ->orWhereHas('user', fn ($user) => $user->where('email', 'like', "%{$search}%"));
+                    $terms = $this->searchTerms($search);
+
+                    $query->where(function ($query) use ($terms): void {
+                        foreach ($terms as $term) {
+                            $query->where(function ($query) use ($term): void {
+                                if (ctype_digit($term)) {
+                                    $query->orWhere('students.id', $term);
+                                }
+
+                                $query->orWhere('students.lrn', 'like', "%{$term}%")
+                                    ->orWhere('students.first_name', 'like', "%{$term}%")
+                                    ->orWhere('students.middle_name', 'like', "%{$term}%")
+                                    ->orWhere('students.last_name', 'like', "%{$term}%")
+                                    ->orWhereHas('user', fn ($user) => $user->where('email', 'like', "%{$term}%"));
+                            });
+                        }
                     });
                 })
                 ->when($request->integer('section'), fn ($query, $section) => $query->where('students.section_id', $section));
@@ -85,11 +98,17 @@ class UserController extends Controller
             $guardiansQuery = Guardian::query()
                 ->withCount('students')
                 ->when($search !== '', function ($query) use ($search): void {
-                    $query->where(function ($query) use ($search): void {
-                        $query->where('first_name', 'like', "%{$search}%")
-                            ->orWhere('last_name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%")
-                            ->orWhere('phone_number', 'like', "%{$search}%");
+                    $terms = $this->searchTerms($search);
+
+                    $query->where(function ($query) use ($terms): void {
+                        foreach ($terms as $term) {
+                            $query->where(function ($query) use ($term): void {
+                                $query->where('first_name', 'like', "%{$term}%")
+                                    ->orWhere('last_name', 'like', "%{$term}%")
+                                    ->orWhere('email', 'like', "%{$term}%")
+                                    ->orWhere('phone_number', 'like', "%{$term}%");
+                            });
+                        }
                     });
                 });
 
@@ -142,13 +161,125 @@ class UserController extends Controller
             $user->sections()->sync($validated['section_ids'] ?? []);
         }
 
-        return redirect()->route('admin.users.index', ['tab' => $this->tabForRole($user->role)])
+        return $this->redirectAfterForm($request, route('admin.users.index', ['tab' => $this->tabForRole($user->role)]))
             ->with('success', 'Account created.');
+    }
+
+    /**
+     * Create any supported account type from the single unified add-user form.
+     */
+    public function storeAccount(Request $request): RedirectResponse
+    {
+        $request->merge([
+            'lrn' => preg_replace('/\D+/', '', (string) $request->input('lrn')),
+            'phone_number' => preg_replace('/\D+/', '', (string) $request->input('phone_number')),
+        ]);
+
+        $common = $request->validate([
+            'account_type' => ['required', Rule::in(['student', 'guardian', 'teacher', 'admin', 'guard'])],
+            'first_name' => ['required', 'string', 'max:255'],
+            'middle_name' => ['nullable', 'string', 'max:255'],
+            'last_name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $type = $common['account_type'];
+
+        match ($type) {
+            'student' => $this->createStudentAccount($request, $common),
+            'guardian' => $this->createGuardianAccount($request, $common),
+            default => $this->createStaffAccount($request, $common, $type),
+        };
+
+        return $this->redirectAfterForm($request, route('admin.users.index', ['tab' => $this->tabForRole($type)]))
+            ->with('success', match ($type) {
+                'student' => 'Student added.',
+                'guardian' => 'Guardian added.',
+                default => 'Account created.',
+            });
+    }
+
+    /**
+     * @param  array<string, mixed>  $common
+     */
+    private function createStudentAccount(Request $request, array $common): void
+    {
+        $validated = $request->validate([
+            'lrn' => ['required', 'digits:12', Rule::unique('students', 'lrn')],
+            'suffix' => ['nullable', Rule::in(Student::SUFFIXES)],
+            'section_id' => ['required', 'exists:sections,id'],
+        ]);
+
+        Student::create([
+            'lrn' => $validated['lrn'],
+            'first_name' => $common['first_name'],
+            'middle_name' => $common['middle_name'] ?? null,
+            'last_name' => $common['last_name'],
+            'suffix' => $validated['suffix'] ?? null,
+            'section_id' => $validated['section_id'],
+            // Every student gets one permanent QR token that is never regenerated.
+            'qr_code' => Str::random(32),
+            'status' => 'active',
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $common
+     */
+    private function createGuardianAccount(Request $request, array $common): void
+    {
+        $validated = $request->validate([
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('guardians', 'email')],
+            'phone_number' => ['required', 'digits:11', 'regex:/^09\d{9}$/'],
+            'relationship_to_student' => ['nullable', 'string', 'max:50'],
+            'address' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        Guardian::create([
+            'first_name' => $common['first_name'],
+            'middle_name' => $common['middle_name'] ?? null,
+            'last_name' => $common['last_name'],
+            'email' => $validated['email'] ?? null,
+            'phone_number' => $validated['phone_number'],
+            'relationship_to_student' => $validated['relationship_to_student'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'status' => 'active',
+        ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $common
+     */
+    private function createStaffAccount(Request $request, array $common, string $type): void
+    {
+        $role = in_array($type, array_keys(User::roleOptions()), true) ? $type : 'teacher';
+
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'section_ids' => ['nullable', 'array'],
+            'section_ids.*' => ['integer', 'exists:sections,id'],
+        ]);
+
+        $name = collect([$common['first_name'], $common['middle_name'] ?? null, $common['last_name']])
+            ->filter()
+            ->implode(' ');
+
+        $user = User::create([
+            'name' => $name,
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+            'role' => $role,
+            'is_active' => true,
+        ]);
+
+        if (in_array($user->role, User::teachingRoles(), true)) {
+            $user->sections()->sync($validated['section_ids'] ?? []);
+        }
     }
 
     public function edit(User $user): View
     {
-        $user->load('sections', 'subjects');
+        $user->load('sections', 'subjects', 'student', 'guardian');
 
         return view('admin.users.edit', [
             'user' => $user,
@@ -158,6 +289,11 @@ class UserController extends Controller
 
     public function update(Request $request, User $user): RedirectResponse
     {
+        $request->merge([
+            'lrn' => $request->filled('lrn') ? preg_replace('/\D+/', '', (string) $request->input('lrn')) : null,
+            'phone_number' => $request->filled('phone_number') ? preg_replace('/\D+/', '', (string) $request->input('phone_number')) : null,
+        ]);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($user->id)],
@@ -165,17 +301,26 @@ class UserController extends Controller
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
             'section_ids' => ['nullable', 'array'],
             'section_ids.*' => ['integer', 'exists:sections,id'],
+            'lrn' => ['nullable', 'required_if:role,student', 'digits:12'],
+            'phone_number' => ['nullable', 'required_if:role,parent', 'digits:11', 'regex:/^09\d{9}$/'],
+            'relationship_to_student' => ['nullable', 'string', 'max:50'],
         ]);
 
         if ($user->role === 'admin' && $validated['role'] !== 'admin' && User::where('role', 'admin')->count() <= 1) {
             return back()->withErrors(['role' => 'Cannot change the last remaining Admin to another role - promote someone else to Admin first.']);
         }
 
+        if ($validated['role'] === 'student' && $error = $this->linkStudentRecord($user, $validated['lrn'] ?? null)) {
+            return back()->withErrors(['lrn' => $error])->withInput();
+        }
+
         if (empty($validated['password'])) {
             unset($validated['password']);
         }
 
-        $user->update(collect($validated)->except(['section_ids'])->all());
+        $user->update(collect($validated)
+            ->except(['section_ids', 'lrn', 'phone_number', 'relationship_to_student'])
+            ->all());
 
         if (in_array($user->role, User::teachingRoles(), true)) {
             $user->sections()->sync($validated['section_ids'] ?? []);
@@ -184,8 +329,73 @@ class UserController extends Controller
             $user->subjects()->detach();
         }
 
+        if ($user->role === 'parent') {
+            $this->syncGuardianRecord($user, $validated);
+        }
+
         return redirect()->route('admin.users.index', ['tab' => $this->tabForRole($user->role)])
             ->with('success', 'Account updated.');
+    }
+
+    /**
+     * Link the account to the existing student record with the given LRN.
+     */
+    private function linkStudentRecord(User $user, ?string $lrn): ?string
+    {
+        $student = Student::where('lrn', $lrn)->first();
+
+        if (! $student) {
+            return 'No student record was found with that LRN. Add the student under Student Records first.';
+        }
+
+        if ($student->user_id && $student->user_id !== $user->id) {
+            return 'That student record is already linked to another account.';
+        }
+
+        $student->update(['user_id' => $user->id]);
+
+        return null;
+    }
+
+    /**
+     * Create or update the guardian record that belongs to this account.
+     *
+     * @param  array<string, mixed>  $validated
+     */
+    private function syncGuardianRecord(User $user, array $validated): void
+    {
+        $guardian = $user->guardian ?? new Guardian(['user_id' => $user->id]);
+
+        $nameParts = preg_split('/\s+/', trim($user->name)) ?: [];
+        $firstName = $nameParts[0] ?? $user->name;
+        $lastName = count($nameParts) > 1 ? implode(' ', array_slice($nameParts, 1)) : $user->name;
+
+        $guardian->fill([
+            'first_name' => $guardian->first_name ?: $firstName,
+            'last_name' => $guardian->last_name ?: $lastName,
+            'email' => $user->email,
+            'phone_number' => $validated['phone_number'] ?? $guardian->phone_number,
+            'relationship_to_student' => $validated['relationship_to_student'] ?? $guardian->relationship_to_student,
+            'status' => $guardian->status ?: 'active',
+            'user_id' => $user->id,
+        ]);
+
+        $guardian->save();
+    }
+
+    public function setPassword(Request $request, User $user): RedirectResponse
+    {
+        if ($user->role !== 'admin') {
+            return back()->withErrors(['password' => 'Only admin accounts can be given a password here. Use the reset email for this account.']);
+        }
+
+        $validated = $request->validate([
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user->update(['password' => $validated['password']]);
+
+        return back()->with('success', 'Password updated for '.$user->name.'.');
     }
 
     public function resetPassword(User $user): RedirectResponse
@@ -228,6 +438,17 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index', ['tab' => $this->tabForRole($user->role)])
             ->with('success', 'Account deleted.');
+    }
+
+    /**
+     * Split a search string into terms so "Juan Cruz" matches a student whose
+     * first and last names are stored in separate columns.
+     *
+     * @return array<int, string>
+     */
+    private function searchTerms(string $search): array
+    {
+        return preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY) ?: [];
     }
 
     private function applyStudentSorting(Builder $query, string $sort, string $direction): void
@@ -315,7 +536,7 @@ class UserController extends Controller
     private function tabForRole(string $role): string
     {
         return match ($role) {
-            'parent' => 'guardians',
+            'parent', 'guardian' => 'guardians',
             'student' => 'students',
             'sub_admin', 'teacher' => 'teachers',
             default => $role,

@@ -2,16 +2,18 @@
 
     <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <h2 class="text-lg font-semibold text-gray-900">All Sections</h2>
-        <x-ui.button href="{{ route('admin.sections.create') }}">+ Add Section</x-ui.button>
+        <x-ui.button type="button" onclick="document.getElementById('add-section-modal').showModal()"><x-ui.icon name="plus" class="h-4 w-4" /> Add Section</x-ui.button>
     </div>
 
     <x-ui.card class="mb-6">
         <form method="GET" class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[200px]">
                 <label class="block text-xs text-gray-500 mb-1">Search</label>
-                <input type="text" name="search" value="{{ request('search') }}"
-                       placeholder="Search by name, grade level, or school year"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <x-ui.form-field icon="search">
+                    <input type="text" name="search" value="{{ request('search') }}"
+                           placeholder="Search by name, grade level, or school year"
+                           class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
+                </x-ui.form-field>
             </div>
             <x-ui.button type="submit" variant="secondary">Search</x-ui.button>
             @if (request('search'))
@@ -24,6 +26,7 @@
         <x-ui.table>
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                 <tr>
+                    <th class="px-4 py-3 text-left">#</th>
                     <th class="px-4 py-3 text-left">Name</th>
                     <th class="px-4 py-3 text-left">Grade Level</th>
                     <th class="px-4 py-3 text-left">School Year</th>
@@ -36,10 +39,23 @@
             <tbody class="divide-y">
                 @forelse ($sections as $section)
                     <tr>
+                        <td class="px-4 py-3 text-sm text-gray-500">{{ $sections->firstItem() + $loop->index }}</td>
                         <td class="px-4 py-3 font-medium">{{ $section->name }}</td>
                         <td class="px-4 py-3">{{ $section->grade_level }}</td>
                         <td class="px-4 py-3">{{ $section->school_year }}</td>
-                        <td class="px-4 py-3">{{ $section->teachers->pluck('name')->join(', ') ?: '— Unassigned' }}</td>
+                        <td class="px-4 py-3 max-w-md text-wrap text-slate-800">
+                            <div class="flex flex-wrap items-center gap-y-1">
+                                @forelse ($section->teachers as $teacher)
+                                    <span>{{ $teacher->name }}</span>
+
+                                    @if (! $loop->last)
+                                        <span class="mx-2 px-1.5 py-0.5 text-xs font-bold text-indigo-700" aria-hidden="true">::</span>
+                                    @endif
+                                @empty
+                                    <span class="text-slate-400 italic">— Unassigned</span>
+                                @endforelse
+                            </div>
+                        </td>
                         <td class="px-4 py-3">
                             {{ $section->students_count }}{{ $section->max_capacity ? ' / ' . $section->max_capacity : '' }}
                         </td>
@@ -47,19 +63,14 @@
                             <x-ui.badge color="{{ $section->status === 'active' ? 'green' : 'gray' }}">{{ ucfirst($section->status) }}</x-ui.badge>
                         </td>
                         <td class="px-4 py-3 space-x-2 text-sm whitespace-nowrap">
-                            <a href="{{ route('admin.sections.show', $section) }}" class="text-indigo-600 hover:underline">View</a>
-                            <a href="{{ route('admin.sections.edit', $section) }}" class="text-indigo-600 hover:underline">Edit</a>
+                            <a href="{{ route('admin.sections.show', $section) }}" class="text-indigo-600 hover:underline">View/Edit</a>
                             <button type="button" onclick="document.getElementById('status-modal-{{ $section->id }}').showModal()" class="text-amber-600 hover:underline">{{ $section->status === 'active' ? 'Deactivate' : 'Activate' }}</button>
                         </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7">
-                            <x-ui.empty-state message="No sections yet.">
-                                <x-slot:action>
-                                    <x-ui.button href="{{ route('admin.sections.create') }}" size="sm">+ Add your first section</x-ui.button>
-                                </x-slot:action>
-                            </x-ui.empty-state>
+                        <td colspan="8">
+                            <x-ui.empty-state message="No sections yet." />
                         </td>
                     </tr>
                 @endforelse
@@ -81,4 +92,11 @@
         </x-ui.confirm-modal>
     @endforeach
 
+    <x-ui.form-modal id="add-section-modal" title="Add Section" action="{{ route('admin.sections.store') }}" submit-label="Save Section">
+        @include('admin.sections._form')
+    </x-ui.form-modal>
+
 </x-layout>
+
+
+

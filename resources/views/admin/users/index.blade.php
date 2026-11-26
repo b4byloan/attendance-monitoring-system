@@ -8,23 +8,29 @@
             'teachers' => 'Teachers',
             'guard' => 'Guards',
         ];
+
+        $searchPlaceholder = match ($tab) {
+            'students' => 'Search by name, LRN, or registered email',
+            'guardians' => 'Search by name, email, or phone',
+            default => 'Search by name or email',
+        };
     @endphp
 
     <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
         <div>
             <h2 class="text-lg font-semibold text-gray-900">Users</h2>
             <p class="text-sm text-gray-500">All students, guardians, and school personnel in one place.</p>
-            @if ($tab === 'teachers')
-                <p class="mt-1 text-xs text-gray-500">Includes Teacher and Sub-Admin accounts. Role badges distinguish Teacher (green) from Sub-Admin (blue).</p>
-            @endif
         </div>
-        @if ($tab === 'students')
-            <x-ui.button href="{{ route('admin.students.create') }}"><x-ui.icon name="plus" class="h-4 w-4" /> Add Student</x-ui.button>
-        @elseif ($tab === 'guardians')
-            <x-ui.button href="{{ route('admin.guardians.create') }}"><x-ui.icon name="plus" class="h-4 w-4" /> Add Guardian</x-ui.button>
-        @else
-            <x-ui.button href="{{ route('admin.users.create') }}"><x-ui.icon name="plus" class="h-4 w-4" /> Add User</x-ui.button>
-        @endif
+        @php
+            $defaultAccountType = match ($tab) {
+                'guardians' => 'guardian',
+                'teachers' => 'teacher',
+                'admin' => 'admin',
+                'guard' => 'guard',
+                default => 'student',
+            };
+        @endphp
+        <x-ui.button type="button" onclick="document.getElementById('add-user-modal').showModal()"><x-ui.icon name="plus" class="h-4 w-4" /> Add User</x-ui.button>
     </div>
 
     <div class="mb-6 overflow-x-auto border-b border-gray-200">
@@ -48,9 +54,11 @@
             <input type="hidden" name="tab" value="{{ $tab }}">
             <div class="flex-1 min-w-[200px]">
                 <label class="block text-xs text-gray-500 mb-1">Search</label>
-                <input type="text" name="search" value="{{ $search }}"
-                       placeholder="Search by name, email, LRN, or phone"
-                       class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <x-ui.form-field icon="search">
+                    <input type="text" name="search" value="{{ $search }}"
+                           placeholder="{{ $searchPlaceholder }}"
+                           class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
+                </x-ui.form-field>
             </div>
             @if ($tab === 'students')
                 <div>
@@ -63,17 +71,8 @@
                     </select>
                 </div>
             @endif
-            <div>
-                <label class="block text-xs text-gray-500 mb-1">Role</label>
-                <select name="role" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="">All Roles</option>
-                    @foreach (\App\Models\User::roleOptions() as $value => $label)
-                        <option value="{{ $value }}" @selected($role === $value)>{{ $label }}</option>
-                    @endforeach
-                </select>
-            </div>
             <x-ui.button type="submit" variant="secondary">Search</x-ui.button>
-            @if ($search !== '' || $role !== '' || request('section'))
+            @if ($search !== '' || request('section'))
                 <a href="{{ route('admin.users.index', ['tab' => $tab]) }}" class="text-sm text-gray-500 hover:underline pb-2">Clear</a>
             @endif
         </form>
@@ -104,11 +103,19 @@
                                     <x-ui.copy-button :value="$student->lrn" />
                                 </span>
                             </td>
-                            <td class="px-4 py-3">{{ $student->full_name }}</td>
+                            <td class="px-4 py-3">
+                                <span class="flex items-center gap-3">
+                                    <x-ui.avatar :name="$student->full_name" :photo="$student->photo_path" size="xs" />
+                                    <span class="font-medium">{{ $student->full_name }}</span>
+                                </span>
+                            </td>
                             <td class="px-4 py-3">{{ $student->section->name ?? '—' }}</td>
                             <td class="px-4 py-3">
                                 @if ($student->user?->email)
-                                    {{ $student->user->email }}
+                                    <span class="flex flex-wrap items-center gap-2">
+                                        {{ $student->user->email }}
+                                        <x-ui.copy-button :value="$student->user->email" what="email" :icon-only="true" />
+                                    </span>
                                 @else
                                     <span class="text-xs text-gray-400">Not registered</span>
                                 @endif
@@ -131,11 +138,7 @@
                     @empty
                         <tr>
                             <td colspan="7">
-                                <x-ui.empty-state message="No student records found.">
-                                    <x-slot:action>
-                                        <x-ui.button href="{{ route('admin.students.create') }}" size="sm">+ Add Student</x-ui.button>
-                                    </x-slot:action>
-                                </x-ui.empty-state>
+                                <x-ui.empty-state message="No student records found." />
                             </td>
                         </tr>
                     @endforelse
@@ -200,10 +203,23 @@
                     @forelse ($guardians as $guardian)
                         <tr>
                             <td class="px-4 py-3 text-sm text-gray-500">{{ $guardians->firstItem() + $loop->index }}</td>
-                            <td class="px-4 py-3 font-medium">{{ $guardian->first_name }} {{ $guardian->last_name }}</td>
                             <td class="px-4 py-3">
-                                <div>{{ $guardian->phone_number }}</div>
-                                @if ($guardian->email)<div class="text-xs text-gray-400">{{ $guardian->email }}</div>@endif
+                                <span class="flex items-center gap-3">
+                                    <x-ui.avatar :name="$guardian->first_name.' '.$guardian->last_name" size="xs" />
+                                    <span class="font-medium">{{ $guardian->first_name }} {{ $guardian->last_name }}</span>
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    {{ $guardian->phone_number }}
+                                    <x-ui.copy-button :value="$guardian->phone_number" what="phone number" :icon-only="true" />
+                                </div>
+                                @if ($guardian->email)
+                                    <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-400">
+                                        {{ $guardian->email }}
+                                        <x-ui.copy-button :value="$guardian->email" what="email" :icon-only="true" />
+                                    </div>
+                                @endif
                             </td>
                             <td class="px-4 py-3">{{ $guardian->relationship_to_student ?? '—' }}</td>
                             <td class="px-4 py-3">
@@ -217,11 +233,7 @@
                     @empty
                         <tr>
                             <td colspan="7">
-                                <x-ui.empty-state message="No guardian records found.">
-                                    <x-slot:action>
-                                        <x-ui.button href="{{ route('admin.guardians.create') }}" size="sm">+ Add Guardian</x-ui.button>
-                                    </x-slot:action>
-                                </x-ui.empty-state>
+                                <x-ui.empty-state message="No guardian records found." />
                             </td>
                         </tr>
                     @endforelse
@@ -239,5 +251,12 @@
             <div class="mt-4">{{ $users->links() }}</div>
         </x-ui.card>
     @endif
+
+    <x-ui.form-modal id="add-user-modal" title="Add User" action="{{ route('admin.users.store-account') }}" submit-label="Create">
+        @include('admin.users._add_account_form', [
+            'sections' => $sections,
+            'defaultType' => old('account_type', $defaultAccountType),
+        ])
+    </x-ui.form-modal>
 
 </x-layout>

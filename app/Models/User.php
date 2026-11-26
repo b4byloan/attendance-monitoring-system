@@ -94,6 +94,7 @@ class User extends Authenticatable
 
     public function isSubAdmin(): bool
     {
+        // Legacy role: Sub-Admins are now shown and treated as Teachers.
         return $this->role === 'sub_admin';
     }
 
@@ -103,7 +104,8 @@ class User extends Authenticatable
     }
 
     /**
-     * Sub-Admins and Teachers both handle class sections and subjects.
+     * Teachers (including legacy Sub-Admin accounts) handle class sections
+     * and subjects.
      */
     public function isTeachingStaff(): bool
     {
@@ -127,6 +129,10 @@ class User extends Authenticatable
 
     public function roleLabel(): string
     {
+        if ($this->role === 'sub_admin') {
+            return 'Teacher';
+        }
+
         return self::roleOptions()[$this->role] ?? ucwords(str_replace('_', ' ', (string) $this->role));
     }
 
@@ -135,7 +141,6 @@ class User extends Authenticatable
     {
         return [
             'admin' => 'Admin',
-            'sub_admin' => 'Sub-Admin',
             'teacher' => 'Teacher',
             'guard' => 'Guard',
             'parent' => 'Guardian',

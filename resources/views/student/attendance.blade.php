@@ -26,6 +26,7 @@
         <x-ui.table>
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                 <tr>
+                    <th class="px-4 py-3 text-left">#</th>
                     <th class="px-4 py-3 text-left">Date</th>
                     <th class="px-4 py-3 text-left">Type</th>
                     <th class="px-4 py-3 text-left">Time</th>
@@ -34,6 +35,7 @@
             <tbody class="divide-y">
                 @forelse ($records as $record)
                     <tr>
+                        <td class="px-4 py-3 text-sm text-gray-500">{{ $records->firstItem() + $loop->index }}</td>
                         <td class="px-4 py-3">{{ $record->attendance_date->format('M j, Y') }}</td>
                         <td class="px-4 py-3">
                             <x-ui.badge color="{{ $record->type === 'check_in' ? 'green' : 'blue' }}">
@@ -43,7 +45,7 @@
                         <td class="px-4 py-3">{{ $record->scanned_at->format('h:i A') }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="3"><x-ui.empty-state message="No records for this period." /></td></tr>
+                    <tr><td colspan="4"><x-ui.empty-state message="No records for this period." /></td></tr>
                 @endforelse
             </tbody>
         </x-ui.table>

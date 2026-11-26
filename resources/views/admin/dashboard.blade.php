@@ -4,6 +4,14 @@
     :recent-notifications="$recentNotifications ?? collect()"
 >
 
+    <div class="mb-6 flex items-center gap-4">
+        <x-ui.avatar :name="auth()->user()->name" size="lg" />
+        <div>
+            <p class="text-sm text-gray-500">Welcome back,</p>
+            <h2 class="text-xl font-bold text-gray-900">{{ auth()->user()->name }}</h2>
+        </div>
+    </div>
+
     <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
         <x-ui.card>
             <p class="text-xs text-gray-500 uppercase tracking-wide">Total Students</p>

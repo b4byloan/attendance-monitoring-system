@@ -66,7 +66,6 @@ Route::middleware('auth')->group(function () {
         Route::resource('students', StudentController::class)->except(['edit']);
         Route::patch('/students/{student}/toggle-status', [StudentController::class, 'toggleStatus'])->name('students.toggle-status');
         Route::patch('/students/{student}/reset-password', [StudentController::class, 'resetPassword'])->name('students.reset-password');
-        Route::patch('/students/{student}/qr-code/regenerate', [QrCodeController::class, 'regenerate'])->name('students.qr-code.regenerate');
         Route::get('/students/{student}/qr-code/download', [QrCodeController::class, 'download'])->name('students.qr-code.download');
         Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
         Route::get('/reports/export/pdf', [ReportController::class, 'exportPdf'])->name('reports.export-pdf');
@@ -75,22 +74,23 @@ Route::middleware('auth')->group(function () {
         Route::resource('users', UserController::class)->except(['show']);
         Route::patch('/users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->name('users.toggle-status');
         Route::patch('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
+        Route::patch('/users/{user}/set-password', [UserController::class, 'setPassword'])->name('users.set-password');
+        Route::post('/users/accounts', [UserController::class, 'storeAccount'])->name('users.store-account');
         Route::resource('guardians', GuardianController::class)->except(['index', 'edit']);
         Route::post('/guardians/{guardian}/students', [GuardianController::class, 'linkStudent'])->name('guardians.students.link');
         Route::delete('/guardians/{guardian}/students/{student}', [GuardianController::class, 'unlinkStudent'])->name('guardians.students.unlink');
         Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
-        Route::get('/audit-logs/{log}', [AuditLogController::class, 'show'])->name('audit-logs.show');
         Route::get('/backups', [BackupController::class, 'index'])->name('backups.index');
         Route::post('/backups', [BackupController::class, 'store'])->name('backups.store');
         Route::get('/backups/{filename}/download', [BackupController::class, 'download'])->name('backups.download');
         Route::delete('/backups/{filename}', [BackupController::class, 'destroy'])->name('backups.destroy');
         Route::post('/backups/{filename}/restore', [BackupController::class, 'restore'])->name('backups.restore');
         Route::get('/design-preview', [DesignPreviewController::class, 'index'])->name('design-preview');
-        Route::resource('sections', SectionController::class);
+        Route::resource('sections', SectionController::class)->except(['edit']);
         Route::patch('/sections/{section}/toggle-status', [SectionController::class, 'toggleStatus'])->name('sections.toggle-status');
-        Route::resource('subjects', SubjectController::class)->except(['show']);
+        Route::resource('subjects', SubjectController::class)->except(['edit']);
         Route::patch('/subjects/{subject}/toggle-status', [SubjectController::class, 'toggleStatus'])->name('subjects.toggle-status');
     });
 

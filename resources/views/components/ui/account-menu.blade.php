@@ -2,19 +2,14 @@
 
 @php
     $user = auth()->user();
-    $initials = collect(explode(' ', $user->name))
-        ->filter()
-        ->take(2)
-        ->map(fn (string $part): string => strtoupper(substr($part, 0, 1)))
-        ->implode('');
 
     $recentNotifications = $recentNotifications ?? collect();
 @endphp
 
 <details class="relative" data-account-menu>
     <summary class="flex cursor-pointer list-none items-center gap-2 rounded-lg p-1.5 text-gray-700 transition hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-        <span class="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-700 text-sm font-semibold text-white">
-            {{ $initials }}
+        <span class="relative flex shrink-0 items-center justify-center">
+            <x-ui.avatar :name="$user->name" size="sm" />
             @if ($unreadCount > 0)
                 <span class="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-red-600 ring-2 ring-white"></span>
             @endif

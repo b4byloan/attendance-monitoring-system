@@ -13,53 +13,66 @@
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                     <label for="link_lrn" class="block text-sm font-medium text-gray-700 mb-1">LRN (12 digits)</label>
-                    <input id="link_lrn" type="text" name="lrn" value="{{ old('lrn') }}" required inputmode="numeric"
-                           pattern="\d{12}" maxlength="12" minlength="12" title="Enter the 12-digit LRN"
-                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 @error('lrn') border-red-400 @enderror">
+                    <x-ui.form-field icon="hash" name="lrn">
+                        <input id="link_lrn" type="text" name="lrn" value="{{ old('lrn') }}" required inputmode="numeric"
+                               pattern="\d{12}" maxlength="12" minlength="12" title="Enter the 12-digit LRN"
+                               data-digits-only data-max-digits="12"
+                               class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
+                    </x-ui.form-field>
                     @error('lrn')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
                     <label for="link_grade_level" class="block text-sm font-medium text-gray-700 mb-1">Grade level</label>
-                    <select id="link_grade_level" name="grade_level" required data-grade-level-select
-                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                        <option value="">Select grade level</option>
-                        @foreach ($gradeLevels as $gradeLevel)
-                            <option value="{{ $gradeLevel }}" @selected(old('grade_level') === $gradeLevel)>{{ $gradeLevel }}</option>
-                        @endforeach
-                    </select>
+                    <x-ui.form-field icon="graduation-cap" name="grade_level">
+                        <select id="link_grade_level" name="grade_level" required data-grade-level-select
+                                class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
+                            <option value="">Select grade level</option>
+                            @foreach ($gradeLevels as $gradeLevel)
+                                <option value="{{ $gradeLevel }}" @selected(old('grade_level') === $gradeLevel)>{{ $gradeLevel }}</option>
+                            @endforeach
+                        </select>
+                    </x-ui.form-field>
                 </div>
 
                 <div>
                     <label for="link_first_name" class="block text-sm font-medium text-gray-700 mb-1">First name</label>
-                    <input id="link_first_name" type="text" name="first_name" value="{{ old('first_name') }}" required maxlength="255"
-                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 @error('first_name') border-red-400 @enderror">
+                    <x-ui.form-field icon="user" name="first_name">
+                        <input id="link_first_name" type="text" name="first_name" value="{{ old('first_name') }}" required maxlength="255"
+                               class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
+                    </x-ui.form-field>
                     @error('first_name')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
                     <label for="link_last_name" class="block text-sm font-medium text-gray-700 mb-1">Last name</label>
-                    <input id="link_last_name" type="text" name="last_name" value="{{ old('last_name') }}" required maxlength="255"
-                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 @error('last_name') border-red-400 @enderror">
+                    <x-ui.form-field icon="user" name="last_name">
+                        <input id="link_last_name" type="text" name="last_name" value="{{ old('last_name') }}" required maxlength="255"
+                               class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
+                    </x-ui.form-field>
                     @error('last_name')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
 
                 <div>
                     <label for="link_middle_name" class="block text-sm font-medium text-gray-700 mb-1">Middle name</label>
-                    <input id="link_middle_name" type="text" name="middle_name" value="{{ old('middle_name') }}" maxlength="255" autocomplete="additional-name"
-                           class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 @error('middle_name') border-red-400 @enderror">
+                    <x-ui.form-field icon="user" name="middle_name">
+                        <input id="link_middle_name" type="text" name="middle_name" value="{{ old('middle_name') }}" maxlength="255" autocomplete="additional-name"
+                               class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
+                    </x-ui.form-field>
                     @error('middle_name')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
 
                 <div class="sm:col-span-2">
                     <label for="link_section_id" class="block text-sm font-medium text-gray-700 mb-1">Section</label>
-                    <select id="link_section_id" name="section_id" required data-section-select
-                            class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                        <option value="">Select a section</option>
-                        @foreach ($sections as $section)
-                            <option value="{{ $section->id }}" data-grade-level="{{ $section->grade_level }}" @selected(old('section_id') == $section->id)>{{ $section->name }}</option>
-                        @endforeach
-                    </select>
+                    <x-ui.form-field icon="layers" name="section_id">
+                        <select id="link_section_id" name="section_id" required data-section-select
+                                class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
+                            <option value="">Select a section</option>
+                            @foreach ($sections as $section)
+                                <option value="{{ $section->id }}" data-grade-level="{{ $section->grade_level }}" @selected(old('section_id') == $section->id)>{{ $section->name }}</option>
+                            @endforeach
+                        </select>
+                    </x-ui.form-field>
                     @error('section_id')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
                 </div>
             </div>
@@ -69,8 +82,13 @@
     </x-ui.card>
 
     <dialog id="link-request-confirmation" class="w-full max-w-md rounded-lg p-0 shadow-xl backdrop:bg-black/40">
-        <div class="p-6">
-            <h3 class="mb-2 text-lg font-semibold text-gray-900">Confirm the student details</h3>
+        <div class="relative p-6">
+            <button type="button" onclick="document.getElementById('link-request-confirmation').close()" aria-label="Close dialog"
+                    class="absolute left-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <x-ui.icon name="x" class="h-4 w-4" />
+            </button>
+
+            <h3 class="mb-2 pl-8 text-lg font-semibold text-gray-900">Confirm the student details</h3>
             <p class="mb-5 text-sm text-gray-600">
                 Are you sure the information you entered is correct? Please double-check the LRN, name (including middle name), grade level, and section before sending.
             </p>

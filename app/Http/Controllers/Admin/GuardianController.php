@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Concerns\LoadsNotificationBell;
+use App\Http\Controllers\Concerns\RedirectsAfterForm;
 use App\Http\Controllers\Controller;
 use App\Models\Guardian;
 use App\Models\Student;
@@ -11,6 +12,7 @@ use Illuminate\Http\Request;
 class GuardianController extends Controller
 {
     use LoadsNotificationBell;
+    use RedirectsAfterForm;
 
     public function create()
     {
@@ -24,7 +26,8 @@ class GuardianController extends Controller
 
         Guardian::create($validated);
 
-        return redirect()->route('admin.users.index', ['tab' => 'guardians'])->with('success', 'Guardian added.');
+        return $this->redirectAfterForm($request, route('admin.users.index', ['tab' => 'guardians']))
+            ->with('success', 'Guardian added.');
     }
 
     public function show(Guardian $guardian)

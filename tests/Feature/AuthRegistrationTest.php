@@ -234,6 +234,15 @@ test('registration page shows both registration tabs', function () {
         ->assertSee('name="suffix"', false);
 });
 
+test('student registration page uses a suffix dropdown and icon groups', function () {
+    $this->get('/register')
+        ->assertOk()
+        ->assertSee('<select id="suffix" name="suffix"', false)
+        ->assertSee('<option value="Jr."', false)
+        ->assertSee('<option value="Sr."', false)
+        ->assertSee('border-r border-slate-200', false);
+});
+
 test('registration requires valid account details', function () {
     $this->post('/register', [
         'name' => '',
@@ -242,6 +251,50 @@ test('registration requires valid account details', function () {
         'password' => 'short',
         'password_confirmation' => 'different',
     ])->assertSessionHasErrors(['name', 'email', 'phone_number', 'password']);
+
+    $this->assertDatabaseCount('users', 0);
+});
+
+test('parent registration enforces a valid mobile number', function () {
+    $this->post('/register', [
+        'name' => 'Maria Santos',
+        'email' => 'maria@example.com',
+        'phone_number' => '12345',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertSessionHasErrors('phone_number');
+
+    $this->assertDatabaseCount('users', 0);
+});
+
+test('student registration requires the suffix to match the school record', function () {
+    $section = Section::create([
+        'name' => 'Grade 10 - Rizal',
+        'grade_level' => 'Grade 10',
+        'school_year' => '2026-2027',
+    ]);
+
+    Student::create([
+        'lrn' => '123456789012',
+        'first_name' => 'Juan',
+        'last_name' => 'Cruz',
+        'suffix' => 'Jr.',
+        'section_id' => $section->id,
+        'qr_code' => 'qr-suffix-student',
+        'status' => 'active',
+    ]);
+
+    $this->post('/register/student', [
+        'lrn' => '123456789012',
+        'first_name' => 'Juan',
+        'last_name' => 'Cruz',
+        'suffix' => 'Sr.',
+        'grade_level' => 'Grade 10',
+        'section_id' => $section->id,
+        'email' => 'juan@example.com',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertSessionHasErrors('lrn');
 
     $this->assertDatabaseCount('users', 0);
 });

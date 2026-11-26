@@ -19,8 +19,8 @@ class DummyAccountsSeeder extends Seeder
         for ($number = 1; $number <= 5; $number++) {
             $this->createUser(
                 sprintf('subadmin%02d@example.com', $number),
-                sprintf('Sub-Admin %02d', $number),
-                'sub_admin',
+                sprintf('Teacher %02d', $number),
+                'teacher',
             );
         }
 
@@ -46,7 +46,7 @@ class DummyAccountsSeeder extends Seeder
         ];
         $sectionModels = [];
 
-        $subAdmins = User::where('role', 'sub_admin')
+        $subAdmins = User::where('role', 'teacher')
             ->where('email', 'like', 'subadmin%@example.com')
             ->orderBy('email')
             ->get();

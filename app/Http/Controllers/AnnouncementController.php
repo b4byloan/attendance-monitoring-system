@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\LoadsNotificationBell;
+use App\Http\Controllers\Concerns\RedirectsAfterForm;
 use App\Models\Announcement;
 use App\Models\Section;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class AnnouncementController extends Controller
 {
     use LoadsNotificationBell;
+    use RedirectsAfterForm;
 
     public function index(Request $request)
     {
@@ -28,33 +31,22 @@ class AnnouncementController extends Controller
 
         $announcements = $query->orderByDesc('is_pinned')->orderByDesc('publish_date')->paginate(10)->withQueryString();
 
-        return view('announcements.index', compact('announcements'))->with($this->notificationBellData());
+        return view('announcements.index', array_merge(
+            compact('announcements'),
+            $this->formContext($user),
+        ))->with($this->notificationBellData());
     }
 
     public function create(Request $request)
     {
-        $user = $request->user();
+        $context = $this->formContext($request->user());
 
-        if ($user->isAdmin()) {
-            return view('announcements.create', [
-                'sections' => Section::orderBy('name')->get(),
-                'lockedSection' => null,
-                'allowSchoolWide' => true,
-            ])->with($this->notificationBellData());
-        }
-
-        $mySections = $user->sections()->orderBy('name')->get();
-
-        if ($mySections->isEmpty()) {
+        if (! $context['canCreate']) {
             return redirect()->route('announcements.index')
                 ->withErrors(['section' => 'You are not assigned to any section yet, so you cannot create announcements.']);
         }
 
-        return view('announcements.create', [
-            'sections' => $mySections,
-            'lockedSection' => $mySections->count() === 1 ? $mySections->first() : null,
-            'allowSchoolWide' => false,
-        ])->with($this->notificationBellData());
+        return view('announcements.create', $context)->with($this->notificationBellData());
     }
 
     public function store(Request $request)
@@ -92,7 +84,8 @@ class AnnouncementController extends Controller
 
         Announcement::create($validated);
 
-        return redirect()->route('announcements.index')->with('success', 'Announcement created.');
+        return $this->redirectAfterForm($request, route('announcements.index'))
+            ->with('success', 'Announcement created.');
     }
 
     public function edit(Request $request, Announcement $announcement)
@@ -107,6 +100,28 @@ class AnnouncementController extends Controller
             'sections' => $sections,
             'allowSchoolWide' => $user->isAdmin(),
         ])->with($this->notificationBellData());
+    }
+
+    /** @return array<string, mixed> */
+    private function formContext(User $user): array
+    {
+        if ($user->isAdmin()) {
+            return [
+                'sections' => Section::orderBy('name')->get(),
+                'lockedSection' => null,
+                'allowSchoolWide' => true,
+                'canCreate' => true,
+            ];
+        }
+
+        $mySections = $user->sections()->orderBy('name')->get();
+
+        return [
+            'sections' => $mySections,
+            'lockedSection' => $mySections->count() === 1 ? $mySections->first() : null,
+            'allowSchoolWide' => false,
+            'canCreate' => $mySections->isNotEmpty(),
+        ];
     }
 
     private function assignedSectionId($user, mixed $sectionId): ?int

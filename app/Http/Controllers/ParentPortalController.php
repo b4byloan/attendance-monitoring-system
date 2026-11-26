@@ -113,7 +113,11 @@ class ParentPortalController extends Controller
             'guardian' => $guardian,
             'requests' => $requests,
             'sections' => $sections,
-            'gradeLevels' => $sections->pluck('grade_level')->unique()->values(),
+            'gradeLevels' => $sections->pluck('grade_level')
+                ->filter(fn ($level) => in_array($level, Section::GRADE_LEVELS, true))
+                ->unique()
+                ->sort()
+                ->values(),
         ])->with($this->notificationBellData());
     }
 

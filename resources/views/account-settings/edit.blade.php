@@ -10,6 +10,13 @@
 
     <div class="{{ $student ? 'mb-6 grid grid-cols-1 items-start gap-6 md:grid-cols-2' : 'mb-6' }}">
         <x-ui.card title="Account Information">
+            <div class="mb-4 flex items-center gap-4">
+                <x-ui.avatar :name="$user->name" size="lg" />
+                <div>
+                    <p class="text-base font-semibold text-gray-900">{{ $user->name }}</p>
+                    <p class="text-sm text-gray-500">{{ $user->roleLabel() }}</p>
+                </div>
+            </div>
             <dl class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                 <div>
                     <dt class="text-xs uppercase text-gray-500">Role</dt>
@@ -17,7 +24,10 @@
                 </div>
                 <div>
                     <dt class="text-xs uppercase text-gray-500">Login Email</dt>
-                    <dd class="mt-0.5 font-medium">{{ $user->email }}</dd>
+                    <dd class="mt-0.5 flex flex-wrap items-center gap-2 font-medium">
+                        {{ $user->email }}
+                        <x-ui.copy-button :value="$user->email" what="email" :icon-only="true" />
+                    </dd>
                 </div>
                 <div>
                     <dt class="text-xs uppercase text-gray-500">Account Created</dt>

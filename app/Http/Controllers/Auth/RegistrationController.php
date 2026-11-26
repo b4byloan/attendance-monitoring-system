@@ -31,7 +31,11 @@ class RegistrationController extends Controller
         return view('auth.register', [
             'schoolSettings' => Setting::current(),
             'sections' => $sections,
-            'gradeLevels' => $sections->pluck('grade_level')->unique()->values(),
+            'gradeLevels' => $sections->pluck('grade_level')
+                ->filter(fn ($level) => in_array($level, Section::GRADE_LEVELS, true))
+                ->unique()
+                ->sort()
+                ->values(),
             'activeTab' => old('registration_type') === 'student' ? 'student' : 'parent',
         ]);
     }
@@ -89,7 +93,7 @@ class RegistrationController extends Controller
             'first_name' => ['required', 'string', 'max:255'],
             'middle_name' => ['nullable', 'string', 'max:255'],
             'last_name' => ['required', 'string', 'max:255'],
-            'suffix' => ['nullable', 'string', 'max:20'],
+            'suffix' => ['nullable', 'string', 'in:Jr.,Sr.,II,III,IV,V'],
             'grade_level' => ['required', 'string', Rule::exists('sections', 'grade_level')],
             'section_id' => [
                 'required',

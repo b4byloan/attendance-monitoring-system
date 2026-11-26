@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Services\QrCodeService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,13 +22,6 @@ class QrCodeController extends Controller
             'student' => $student,
             'dataUri' => $this->qrCode->dataUri($student->qr_code),
         ]);
-    }
-
-    public function regenerate(Student $student)
-    {
-        $student->update(['qr_code' => Str::random(32)]);
-
-        return back()->with('success', 'QR code regenerated. The old code no longer works.');
     }
 
     public function download(Student $student): Response

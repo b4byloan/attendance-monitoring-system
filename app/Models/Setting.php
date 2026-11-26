@@ -12,7 +12,7 @@ class Setting extends Model
         'school_start_time', 'school_end_time',
         'checkin_start_time', 'checkin_cutoff_time', 'checkout_start_time', 'checkout_cutoff_time',
         'late_threshold_minutes',
-        'qr_expiration_days', 'qr_format', 'qr_default_size',
+        'qr_format', 'qr_default_size',
         'sms_provider', 'sms_sender_name', 'sms_enabled',
     ];
 
@@ -23,7 +23,7 @@ class Setting extends Model
     public static function current(): self
     {
         return static::firstOrCreate([], [
-            'academic_year' => now()->year . '-' . (now()->year + 1),
+            'academic_year' => now()->year.'-'.(now()->year + 1),
         ]);
     }
 }

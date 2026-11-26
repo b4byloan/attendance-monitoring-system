@@ -13,6 +13,24 @@ class Guardian extends Model
 {
     use HasFactory;
 
+    /**
+     * Relationship options offered by the guardian forms.
+     *
+     * @var list<string>
+     */
+    public const RELATIONSHIPS = [
+        'Mother',
+        'Father',
+        'Parent',
+        'Guardian',
+        'Grandmother',
+        'Grandfather',
+        'Aunt',
+        'Uncle',
+        'Sibling',
+        'Other',
+    ];
+
     protected $fillable = [
         'first_name',
         'last_name',

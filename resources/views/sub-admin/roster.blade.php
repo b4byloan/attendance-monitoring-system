@@ -47,11 +47,11 @@
     </div>
 
     @if ($tab === 'sections')
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 2xl:grid-cols-3">
             @forelse ($sections as $section)
                 <x-ui.section-card :section="$section" />
             @empty
-                <x-ui.card class="sm:col-span-2 xl:col-span-3">
+                <x-ui.card class="sm:col-span-2 2xl:col-span-3">
                     <x-ui.empty-state message="No sections are assigned to you yet — contact your admin." />
                 </x-ui.card>
             @endforelse
@@ -103,6 +103,7 @@
                 <x-ui.table>
                     <thead class="bg-gray-50 text-xs uppercase text-gray-600">
                         <tr>
+                            <th class="px-4 py-3 text-left">#</th>
                             <th class="px-4 py-3 text-left">Timestamp</th>
                             <th class="px-4 py-3 text-left">Student Name</th>
                             <th class="px-4 py-3 text-left">LRN</th>
@@ -115,6 +116,7 @@
                     <tbody class="divide-y">
                         @forelse ($records as $record)
                             <tr>
+                                <td class="px-4 py-3 text-sm text-gray-500">{{ $records->firstItem() + $loop->index }}</td>
                                 <td class="whitespace-nowrap px-4 py-3">
                                     <span class="font-medium text-gray-900">{{ $record->scanned_at->format('M j, Y') }}</span>
                                     <span class="block text-xs text-gray-400">{{ $record->scanned_at->format('h:i A') }}</span>
@@ -130,7 +132,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7">
+                                <td colspan="8">
                                     <x-ui.empty-state message="No scanned students match these filters." />
                                 </td>
                             </tr>

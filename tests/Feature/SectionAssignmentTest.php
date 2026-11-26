@@ -6,13 +6,13 @@ use App\Models\Student;
 use App\Models\Subject;
 use App\Models\User;
 
-it('limits section capacity to integers from one through ten', function () {
+it('requires a section capacity between one and sixty', function () {
     $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
 
     $this->actingAs($admin)
         ->get(route('admin.sections.create'))
         ->assertOk()
-        ->assertSee('min="1" max="10" step="1"', false);
+        ->assertSee('min="1" max="60" step="1"', false);
 
     $this->post(route('admin.sections.store'), [
         'name' => 'Capacity Limit Section',
@@ -24,11 +24,11 @@ it('limits section capacity to integers from one through ten', function () {
 
     $section = Section::where('name', 'Capacity Limit Section')->firstOrFail();
 
-    $this->get(route('admin.sections.edit', $section))
+    $this->get(route('admin.sections.show', $section))
         ->assertOk()
-        ->assertSee('min="1" max="10" step="1"', false);
+        ->assertSee('min="1" max="60" step="1"', false);
 
-    foreach ([-1, 11] as $capacity) {
+    foreach ([-1, 0, 61] as $capacity) {
         $this->put(route('admin.sections.update', $section), [
             'name' => $section->name,
             'grade_level' => $section->grade_level,
@@ -37,6 +37,13 @@ it('limits section capacity to integers from one through ten', function () {
             'max_capacity' => $capacity,
         ])->assertSessionHasErrors('max_capacity');
     }
+
+    $this->put(route('admin.sections.update', $section), [
+        'name' => $section->name,
+        'grade_level' => $section->grade_level,
+        'school_year_start' => 2026,
+        'school_year_end' => 2027,
+    ])->assertSessionHasErrors('max_capacity');
 });
 
 it('splits school year values into consecutive years for section and school settings', function () {
@@ -53,12 +60,13 @@ it('splits school year values into consecutive years for section and school sett
         'grade_level' => 'Grade 7',
         'school_year_start' => 2026,
         'school_year_end' => 2027,
+        'max_capacity' => 40,
     ])->assertRedirect(route('admin.sections.index'));
 
     $section = Section::where('name', 'School Year Range Section')->firstOrFail();
     expect($section->school_year)->toBe('2026-2027');
 
-    $this->get(route('admin.sections.edit', $section))
+    $this->get(route('admin.sections.show', $section))
         ->assertOk()
         ->assertSee('name="school_year_start" value="2026"', false)
         ->assertSee('name="school_year_end" value="2027"', false);
@@ -68,6 +76,7 @@ it('splits school year values into consecutive years for section and school sett
         'grade_level' => $section->grade_level,
         'school_year_start' => 2027,
         'school_year_end' => 2028,
+        'max_capacity' => 40,
     ])->assertRedirect(route('admin.sections.show', $section));
 
     expect($section->fresh()->school_year)->toBe('2027-2028');
@@ -77,6 +86,7 @@ it('splits school year values into consecutive years for section and school sett
         'grade_level' => $section->grade_level,
         'school_year_start' => 2027,
         'school_year_end' => 2029,
+        'max_capacity' => 40,
     ])->assertSessionHasErrors('school_year_end');
 
     $settings = Setting::current();
@@ -131,6 +141,7 @@ it('assigns multiple sections to a teacher and removes access when unchecked', f
             'school_year_start' => 2026,
             'school_year_end' => 2027,
             'status' => 'active',
+            'max_capacity' => 10,
             'teacher_ids' => [$teacher->id, $otherTeacher->id],
         ])
         ->assertRedirect(route('admin.sections.show', $first));
@@ -148,6 +159,7 @@ it('assigns multiple sections to a teacher and removes access when unchecked', f
             'school_year_start' => 2026,
             'school_year_end' => 2027,
             'status' => 'active',
+            'max_capacity' => 10,
             'teacher_ids' => [$teacher->id],
         ])
         ->assertRedirect(route('admin.sections.show', $second));
@@ -168,6 +180,7 @@ it('assigns multiple sections to a teacher and removes access when unchecked', f
             'school_year_start' => 2026,
             'school_year_end' => 2027,
             'status' => 'active',
+            'max_capacity' => 10,
             'teacher_ids' => [$otherTeacher->id],
         ]);
 
@@ -195,10 +208,10 @@ it('shows every user category as a tab on one Users page', function () {
         ->assertSee($section->name)
         ->assertSee('Students')
         ->assertSee('Guardians')
-        ->assertSee('Sub-Admin')
+        ->assertSee('Teacher')
+        ->assertDontSee('Sub-Admin')
         ->assertSee('Guards')
         ->assertSee('bg-green-100 text-green-800', false)
-        ->assertSee('bg-blue-100 text-blue-800', false)
         ->assertSee('overflow-x-auto', false)
         ->assertSee('min-w-max', false)
         ->assertDontSee(route('admin.users.index', ['tab' => 'sub_admin']), false);
@@ -248,7 +261,7 @@ it('renders the subject, users, and student management pages', function () {
     ]);
 
     $this->actingAs($admin)->get(route('admin.subjects.create'))->assertOk()->assertSee('Assigned Teachers');
-    $this->actingAs($admin)->get(route('admin.subjects.edit', $subject))->assertOk()->assertSee('English');
+    $this->actingAs($admin)->get(route('admin.subjects.show', $subject))->assertOk()->assertSee('English');
     $this->actingAs($admin)->get(route('admin.students.show', $student))->assertOk()->assertSee('Student Information');
     $this->actingAs($admin)->get(route('admin.users.create'))->assertOk()->assertSee('Confirm Password');
     $this->actingAs($admin)->get(route('admin.users.edit', $teacher))->assertOk()->assertSee('Assigned Sections');
@@ -265,7 +278,7 @@ it('creates subjects and assigns several teachers to them', function () {
         ->post(route('admin.subjects.store'), [
             'name' => 'Science',
             'code' => 'SCI',
-            'grade_level' => 'Grade 7',
+            'description' => 'Science subject',
             'status' => 'active',
             'teacher_ids' => [$teacherA->id, $teacherB->id],
         ])
