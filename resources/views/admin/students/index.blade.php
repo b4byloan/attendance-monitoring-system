@@ -1,10 +1,5 @@
 <x-layout title="Manage Students" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <h2 class="text-lg font-semibold text-gray-900">All Students</h2>
-        <x-ui.button type="button" onclick="document.getElementById('add-student-modal').showModal()"><x-ui.icon name="plus" class="h-4 w-4" /> Add Student</x-ui.button>
-    </div>
-
     <x-ui.card class="mb-6">
         <form method="GET" class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[200px]">
@@ -16,6 +11,7 @@
                 </x-ui.form-field>
             </div>
             <x-ui.button type="submit" variant="secondary">Search</x-ui.button>
+            <x-ui.button type="button" onclick="document.getElementById('add-student-modal').showModal()"><x-ui.icon name="plus" class="h-4 w-4" /> Add Student</x-ui.button>
             @if (request('search'))
                 <a href="{{ route('admin.students.index') }}" class="text-sm text-gray-500 hover:underline pb-2">Clear</a>
             @endif

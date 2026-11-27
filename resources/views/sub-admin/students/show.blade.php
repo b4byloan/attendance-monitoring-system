@@ -123,32 +123,30 @@
             </x-ui.card>
 
             <x-ui.card title="Recent Gate Attendance">
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead class="text-xs uppercase text-gray-500">
+                <x-ui.table :fit="true">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Date</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse ($recentRecords as $record)
                             <tr>
-                                <th class="py-2 pr-4">#</th>
-                                <th class="py-2 pr-4">Date</th>
-                                <th class="py-2 pr-4">Type</th>
-                                <th class="py-2">Time</th>
+                                <td class="font-medium text-gray-500">{{ $loop->iteration }}</td>
+                                <td class="whitespace-nowrap">{{ $record->attendance_date->format('M j, Y') }}</td>
+                                <td class="whitespace-nowrap">{{ $record->type === 'check_in' ? 'Check-In' : 'Check-Out' }}</td>
+                                <td class="whitespace-nowrap">{{ $record->scanned_at->format('h:i A') }}</td>
                             </tr>
-                        </thead>
-                        <tbody class="divide-y">
-                            @forelse ($recentRecords as $record)
-                                <tr>
-                                    <td class="py-2 pr-4 text-gray-500">{{ $loop->iteration }}</td>
-                                    <td class="py-2 pr-4">{{ $record->attendance_date->format('M j, Y') }}</td>
-                                    <td class="py-2 pr-4">{{ $record->type === 'check_in' ? 'Check-In' : 'Check-Out' }}</td>
-                                    <td class="py-2">{{ $record->scanned_at->format('h:i A') }}</td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5"><x-ui.empty-state message="No gate attendance recorded yet." /></td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
-                </div>
+                        @empty
+                            <tr>
+                                <td colspan="4"><x-ui.empty-state message="No gate attendance recorded yet." /></td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </x-ui.table>
             </x-ui.card>
         @else
             <x-ui.card title="Guardians">

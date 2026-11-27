@@ -1,7 +1,5 @@
 <x-layout title="Audit Logs" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    <h2 class="text-lg font-semibold text-gray-900 mb-6">Audit Logs</h2>
-
     <x-ui.card class="mb-6">
         <form method="GET" class="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
             <div>

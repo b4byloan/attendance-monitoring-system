@@ -16,22 +16,15 @@
         };
     @endphp
 
-    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <div>
-            <h2 class="text-lg font-semibold text-gray-900">Users</h2>
-            <p class="text-sm text-gray-500">All students, guardians, and school personnel in one place.</p>
-        </div>
-        @php
-            $defaultAccountType = match ($tab) {
-                'guardians' => 'guardian',
-                'teachers' => 'teacher',
-                'admin' => 'admin',
-                'guard' => 'guard',
-                default => 'student',
-            };
-        @endphp
-        <x-ui.button type="button" onclick="document.getElementById('add-user-modal').showModal()"><x-ui.icon name="plus" class="h-4 w-4" /> Add User</x-ui.button>
-    </div>
+    @php
+        $defaultAccountType = match ($tab) {
+            'guardians' => 'guardian',
+            'teachers' => 'teacher',
+            'admin' => 'admin',
+            'guard' => 'guard',
+            default => 'student',
+        };
+    @endphp
 
     <div class="mb-6 overflow-x-auto border-b border-gray-200">
         <nav class="flex min-w-max gap-1" aria-label="User categories">
@@ -50,20 +43,26 @@
     </div>
 
     <x-ui.card class="mb-6">
-        <form method="GET" class="flex flex-wrap gap-3 items-end">
+        <form method="GET" class="flex flex-col gap-3 sm:flex-row sm:items-end">
             <input type="hidden" name="tab" value="{{ $tab }}">
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-xs text-gray-500 mb-1">Search</label>
-                <x-ui.form-field icon="search">
-                    <input type="text" name="search" value="{{ $search }}"
+            <div class="flex-1">
+                <label for="user-search" class="sr-only">Search</label>
+                <div class="relative">
+                    <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                        <svg class="h-4 w-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/>
+                        </svg>
+                    </div>
+                    <input id="user-search" type="text" name="search" value="{{ $search }}"
                            placeholder="{{ $searchPlaceholder }}"
-                           class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
-                </x-ui.form-field>
+                           class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pl-10 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
+                </div>
             </div>
             @if ($tab === 'students')
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Section</label>
-                    <select name="section" class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <div class="sm:w-56">
+                    <label for="user-section-filter" class="sr-only">Section</label>
+                    <select id="user-section-filter" name="section"
+                            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-sm text-gray-900 focus:border-blue-500 focus:ring-blue-500">
                         <option value="">All Sections</option>
                         @foreach ($sections as $section)
                             <option value="{{ $section->id }}" @selected((int) request('section') === $section->id)>{{ $section->name }}</option>
@@ -71,9 +70,17 @@
                     </select>
                 </div>
             @endif
-            <x-ui.button type="submit" variant="secondary">Search</x-ui.button>
+            <button type="submit"
+                    class="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-700 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-300">
+                <svg class="h-4 w-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="m21 21-3.5-3.5M17 10a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z"/>
+                </svg>
+                Search
+            </button>
+            <x-ui.button type="button" onclick="document.getElementById('add-user-modal').showModal()"><x-ui.icon name="plus" class="h-4 w-4" /> Add User</x-ui.button>
             @if ($search !== '' || request('section'))
-                <a href="{{ route('admin.users.index', ['tab' => $tab]) }}" class="text-sm text-gray-500 hover:underline pb-2">Clear</a>
+                <a href="{{ route('admin.users.index', ['tab' => $tab]) }}"
+                   class="pb-1 text-sm font-medium text-gray-500 hover:text-gray-900 hover:underline">Clear</a>
             @endif
         </form>
     </x-ui.card>
@@ -82,39 +89,39 @@
         <x-ui.card class="mb-6">
             <h3 class="mb-4 text-base font-semibold text-gray-900">Student Records</h3>
             <x-ui.table :fit="true">
-                <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+                <thead class="bg-gray-50 text-xs uppercase tracking-wider text-gray-700">
                     <tr>
-                        <th class="px-4 py-3 text-left">#</th>
-                        <x-ui.sortable-th column="lrn" label="LRN" />
-                        <x-ui.sortable-th column="name" label="Name" />
-                        <x-ui.sortable-th column="grade_level" label="Grade Level" />
-                        <x-ui.sortable-th column="section" label="Section" />
-                        <x-ui.sortable-th column="email" label="Email" />
-                        <x-ui.sortable-th column="status" label="Status" />
-                        <th class="px-4 py-3 text-left">Actions</th>
+                        <th scope="col" class="w-12 px-4 py-3 text-left font-semibold">#</th>
+                        <x-ui.sortable-th column="lrn" label="LRN" class="font-semibold" />
+                        <x-ui.sortable-th column="name" label="Name" class="font-semibold" />
+                        <x-ui.sortable-th column="grade_level" label="Grade Level" class="font-semibold" />
+                        <x-ui.sortable-th column="section" label="Section" class="font-semibold" />
+                        <x-ui.sortable-th column="email" label="Email" class="font-semibold" />
+                        <x-ui.sortable-th column="status" label="Status" class="font-semibold" />
+                        <th scope="col" class="px-4 py-3 text-left font-semibold">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y">
+                <tbody class="divide-y divide-gray-200 bg-white">
                     @forelse ($students as $student)
-                        <tr>
-                            <td class="px-4 py-3 text-sm text-gray-500">{{ $students->firstItem() + $loop->index }}</td>
-                            <td class="px-4 py-3">
+                        <tr class="bg-white transition-colors hover:bg-gray-50">
+                            <td class="px-4 py-4 text-sm font-medium text-gray-500">{{ $students->firstItem() + $loop->index }}</td>
+                            <td class="px-4 py-4">
                                 <span class="flex items-center gap-2">
-                                    <span class="font-mono text-xs">{{ $student->lrn }}</span>
+                                    <span class="font-mono text-xs text-gray-700">{{ $student->lrn }}</span>
                                     <x-ui.copy-button :value="$student->lrn" what="LRN" :icon-only="true"/>
                                 </span>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-4">
                                 <span class="flex items-center gap-3">
                                     <x-ui.avatar :name="$student->full_name" :photo="$student->photo_path" size="xs" />
-                                    <span class="font-medium">{{ $student->full_name }}</span>
+                                    <span class="whitespace-nowrap font-semibold text-gray-900">{{ $student->full_name }}</span>
                                 </span>
                             </td>
-                            <td class="px-4 py-3 whitespace-nowrap"><x-ui.optional-value :value="$student->section->grade_level ?? null" /></td>
-                            <td class="px-4 py-3"><x-ui.optional-value :value="$student->section->name ?? null" /></td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-4 whitespace-nowrap"><x-ui.optional-value :value="$student->section->grade_level ?? null" /></td>
+                            <td class="px-4 py-4"><x-ui.optional-value :value="$student->section->name ?? null" /></td>
+                            <td class="px-4 py-4">
                                 @if ($student->user?->email)
-                                    <span class="flex flex-wrap items-center gap-2">
+                                    <span class="flex flex-wrap items-center gap-2 text-sm text-gray-500">
                                         {{ $student->user->email }}
                                         <x-ui.copy-button :value="$student->user->email" what="email" :icon-only="true" />
                                     </span>
@@ -122,24 +129,26 @@
                                     <span class="text-xs text-gray-400">Not registered</span>
                                 @endif
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-4 whitespace-nowrap">
                                 <x-ui.badge color="{{ $student->status === 'active' ? 'green' : 'gray' }}">{{ ucfirst($student->status) }}</x-ui.badge>
                             </td>
-                            <td class="px-4 py-3 space-x-2 text-sm whitespace-nowrap">
-                                <a href="{{ route('admin.students.show', $student) }}" class="text-indigo-600 hover:underline">View/Edit</a>
-                                <button type="button" onclick="document.getElementById('student-qr-modal-{{ $student->id }}').showModal()" class="text-purple-600 hover:underline">QR</button>
-                                @if ($student->user)
-                                    <button type="button" onclick="document.getElementById('student-reset-password-modal-{{ $student->id }}').showModal()" class="text-purple-600 hover:underline">Reset password</button>
-                                @endif
-                                <button type="button" onclick="document.getElementById('student-status-modal-{{ $student->id }}').showModal()" class="text-amber-600 hover:underline">
-                                    {{ $student->status === 'active' ? 'Deactivate' : 'Activate' }}
-                                </button>
-                                <button type="button" onclick="document.getElementById('student-delete-modal-{{ $student->id }}').showModal()" class="text-red-600 hover:underline">Delete</button>
+                            <td class="px-4 py-4 text-sm">
+                                <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                    <a href="{{ route('admin.students.show', $student) }}" class="whitespace-nowrap font-medium text-blue-600 hover:underline">View/Edit</a>
+                                    <button type="button" onclick="document.getElementById('student-qr-modal-{{ $student->id }}').showModal()" class="whitespace-nowrap font-medium text-purple-600 hover:underline">QR</button>
+                                    @if ($student->user)
+                                        <button type="button" onclick="document.getElementById('student-reset-password-modal-{{ $student->id }}').showModal()" class="whitespace-nowrap font-medium text-emerald-600 hover:underline">Reset password</button>
+                                    @endif
+                                    <button type="button" onclick="document.getElementById('student-status-modal-{{ $student->id }}').showModal()" class="whitespace-nowrap font-medium text-amber-600 hover:underline">
+                                        {{ $student->status === 'active' ? 'Deactivate' : 'Activate' }}
+                                    </button>
+                                    <button type="button" onclick="document.getElementById('student-delete-modal-{{ $student->id }}').showModal()" class="whitespace-nowrap font-medium text-red-600 hover:underline">Delete</button>
+                                </div>
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="8">
+                        <tr class="bg-white">
+                            <td colspan="8" class="px-4 py-6 text-center text-sm text-gray-500">
                                 <x-ui.empty-state message="No student records found." />
                             </td>
                         </tr>
@@ -171,7 +180,8 @@
                 form-action="{{ route('admin.students.destroy', $student) }}"
                 form-method="DELETE"
                 confirm-label="Yes, delete">
-                This only works if this student has no attendance history. Otherwise, deactivate them instead.
+                This removes the student record{{ $student->user ? ' and their portal account' : '' }}, freeing the email address for a new registration.
+                It only works if this student has no attendance history. Otherwise, deactivate them instead.
             </x-ui.confirm-modal>
 
             @if ($student->user)
@@ -190,28 +200,28 @@
         <x-ui.card class="mb-6">
             <h3 class="mb-4 text-base font-semibold text-gray-900">Guardian Records</h3>
             <x-ui.table :fit="true">
-                <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+                <thead class="bg-gray-50 text-xs uppercase tracking-wider text-gray-700">
                     <tr>
-                        <th class="px-4 py-3 text-left">#</th>
-                        <x-ui.sortable-th column="name" label="Name" />
-                        <x-ui.sortable-th column="contact" label="Contact" />
-                        <x-ui.sortable-th column="relationship" label="Relationship" />
-                        <x-ui.sortable-th column="status" label="Status" />
-                        <x-ui.sortable-th column="students" label="Students" />
-                        <th class="px-4 py-3 text-left">Actions</th>
+                        <th scope="col" class="w-12 px-4 py-3 text-left font-semibold">#</th>
+                        <x-ui.sortable-th column="name" label="Name" class="font-semibold" />
+                        <x-ui.sortable-th column="contact" label="Contact" class="font-semibold" />
+                        <x-ui.sortable-th column="relationship" label="Relationship" class="font-semibold" />
+                        <x-ui.sortable-th column="status" label="Status" class="font-semibold" />
+                        <x-ui.sortable-th column="students" label="Students" class="font-semibold" />
+                        <th scope="col" class="px-4 py-3 text-left font-semibold">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y">
+                <tbody class="divide-y divide-gray-200 bg-white">
                     @forelse ($guardians as $guardian)
-                        <tr>
-                            <td class="px-4 py-3 text-sm text-gray-500">{{ $guardians->firstItem() + $loop->index }}</td>
-                            <td class="px-4 py-3">
+                        <tr class="bg-white transition-colors hover:bg-gray-50">
+                            <td class="px-4 py-4 text-sm font-medium text-gray-500">{{ $guardians->firstItem() + $loop->index }}</td>
+                            <td class="px-4 py-4">
                                 <span class="flex items-center gap-3">
                                     <x-ui.avatar :name="$guardian->first_name.' '.$guardian->last_name" size="xs" />
-                                    <span class="font-medium">{{ $guardian->first_name }} {{ $guardian->last_name }}</span>
+                                    <span class="whitespace-nowrap font-semibold text-gray-900">{{ $guardian->first_name }} {{ $guardian->last_name }}</span>
                                 </span>
                             </td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-4 text-sm text-gray-500">
                                 <div class="flex flex-wrap items-center gap-2">
                                     {{ $guardian->phone_number }}
                                     <x-ui.copy-button :value="$guardian->phone_number" what="phone number" :icon-only="true" />
@@ -223,18 +233,18 @@
                                     </div>
                                 @endif
                             </td>
-                            <td class="px-4 py-3"><x-ui.optional-value :value="$guardian->relationship_to_student" /></td>
-                            <td class="px-4 py-3">
+                            <td class="px-4 py-4"><x-ui.optional-value :value="$guardian->relationship_to_student" /></td>
+                            <td class="px-4 py-4 whitespace-nowrap">
                                 <x-ui.badge color="{{ $guardian->status === 'active' ? 'green' : 'gray' }}">{{ ucfirst($guardian->status) }}</x-ui.badge>
                             </td>
-                            <td class="px-4 py-3">{{ $guardian->students_count }}</td>
-                            <td class="px-4 py-3 space-x-2 text-sm whitespace-nowrap">
-                                <a href="{{ route('admin.guardians.show', $guardian) }}" class="text-indigo-600 hover:underline">View/Edit</a>
+                            <td class="px-4 py-4 font-medium text-gray-900">{{ $guardian->students_count }}</td>
+                            <td class="px-4 py-4 text-sm">
+                                <a href="{{ route('admin.guardians.show', $guardian) }}" class="whitespace-nowrap font-medium text-blue-600 hover:underline">View/Edit</a>
                             </td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="7">
+                        <tr class="bg-white">
+                            <td colspan="7" class="px-4 py-6 text-center text-sm text-gray-500">
                                 <x-ui.empty-state message="No guardian records found." />
                             </td>
                         </tr>

@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Notifications\ResetPasswordNotification;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Carbon;
 
 class User extends Authenticatable
 {
@@ -30,6 +32,20 @@ class User extends Authenticatable
         'is_active' => 'boolean',
         'last_login_at' => 'datetime',
     ];
+
+    /**
+     * The OTP expiry is stored in UTC so it stays correct no matter which
+     * timezone the app is configured with when the code is created or checked.
+     */
+    protected function otpExpiresAt(): Attribute
+    {
+        return Attribute::make(
+            get: fn (?string $value) => $value ? Carbon::createFromFormat('Y-m-d H:i:s', $value, 'UTC') : null,
+            set: fn ($value) => $value === null
+                ? null
+                : Carbon::instance($value instanceof \DateTimeInterface ? $value : Carbon::parse($value))->utc(),
+        );
+    }
 
     public function advisedSections()
     {

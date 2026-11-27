@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Services\OtpService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,10 +13,14 @@ use Illuminate\View\View;
 
 class LoginController extends Controller
 {
+    public function __construct(private readonly OtpService $otp) {}
+
     public function create(): View|RedirectResponse
     {
         if (Auth::check()) {
-            return redirect()->route(Auth::user()->dashboardRoute());
+            $user = Auth::user();
+
+            return redirect()->route($user->email_verified_at === null ? 'otp.show' : $user->dashboardRoute());
         }
 
         return view('auth.login', ['schoolSettings' => Setting::current()]);
@@ -44,6 +49,18 @@ class LoginController extends Controller
                 'email' => 'This account has been deactivated. Please contact the administrator.',
             ]);
         }
+
+        if ($user->email_verified_at === null) {
+            if (! $this->otp->hasPendingCode($user)) {
+                $this->otp->send($user);
+            }
+
+            $request->session()->regenerate();
+
+            return redirect()->route('otp.show')
+                ->with('status', 'Enter the verification code we emailed to '.$user->email.'.');
+        }
+
         $user->update(['last_login_at' => now()]);
         $request->session()->regenerate();
 

@@ -4,8 +4,12 @@ use App\Models\Guardian;
 use App\Models\Section;
 use App\Models\Student;
 use App\Models\User;
+use App\Notifications\OtpCodeNotification;
+use Illuminate\Support\Facades\Notification;
 
 test('parent can register and is linked to a guardian record', function () {
+    Notification::fake();
+
     $response = $this->post('/register', [
         'name' => 'Maria Santos',
         'email' => 'maria@example.com',
@@ -15,12 +19,16 @@ test('parent can register and is linked to a guardian record', function () {
         'password_confirmation' => 'password123',
     ]);
 
-    $response->assertRedirect(route('parent.dashboard'));
+    $response->assertRedirect(route('otp.show'));
 
     $user = User::where('email', 'maria@example.com')->firstOrFail();
 
     expect($user->role)->toBe('parent')
-        ->and($user->is_active)->toBeTrue();
+        ->and($user->is_active)->toBeTrue()
+        ->and($user->email_verified_at)->toBeNull()
+        ->and($user->otp_code)->not->toBeNull();
+
+    Notification::assertSentTo($user, OtpCodeNotification::class);
 
     $this->assertAuthenticatedAs($user);
     $this->assertDatabaseHas('guardians', [
@@ -66,7 +74,7 @@ test('student can register and is linked to the matching student record', functi
         'password_confirmation' => 'password123',
     ]);
 
-    $response->assertRedirect(route('student.dashboard'));
+    $response->assertRedirect(route('otp.show'));
 
     $user = User::where('email', 'juan@example.com')->firstOrFail();
     $student->refresh();

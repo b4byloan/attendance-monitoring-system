@@ -1,14 +1,5 @@
 <x-layout title="Attendance Reports" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <h2 class="text-lg font-semibold text-gray-900">Attendance Reports</h2>
-        <div class="flex flex-wrap gap-2">
-            <x-ui.button href="{{ route('admin.reports.export-pdf', request()->query()) }}" variant="secondary" size="sm">Export PDF</x-ui.button>
-            <x-ui.button href="{{ route('admin.reports.export-excel', request()->query()) }}" variant="secondary" size="sm">Export Excel</x-ui.button>
-            <x-ui.button href="{{ route('admin.reports.export-csv', request()->query()) }}" variant="secondary" size="sm">Export CSV</x-ui.button>
-        </div>
-    </div>
-
     <x-ui.card class="mb-6">
         <form method="GET" class="space-y-4">
             <div>
@@ -63,9 +54,12 @@
                 </div>
             </div>
 
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
                 <x-ui.button type="submit">Apply Filters</x-ui.button>
                 <x-ui.button variant="secondary" href="{{ route('admin.reports.index') }}">Clear</x-ui.button>
+                <x-ui.button href="{{ route('admin.reports.export-pdf', request()->query()) }}" variant="secondary">Export PDF</x-ui.button>
+                <x-ui.button href="{{ route('admin.reports.export-excel', request()->query()) }}" variant="secondary">Export Excel</x-ui.button>
+                <x-ui.button href="{{ route('admin.reports.export-csv', request()->query()) }}" variant="secondary">Export CSV</x-ui.button>
             </div>
         </form>
     </x-ui.card>

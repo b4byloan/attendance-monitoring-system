@@ -56,8 +56,8 @@ it('numbers the student records and sorts them in both directions', function () 
         ->assertOk()
         ->assertSeeInOrder(['Alpha Student', 'Zulu Student'], false)
         ->assertSee('direction=desc', false)
-        ->assertSee('<td class="px-4 py-3 text-sm text-gray-500">1</td>', false)
-        ->assertSee('<td class="px-4 py-3 text-sm text-gray-500">2</td>', false);
+        ->assertSee('<td class="px-4 py-4 text-sm font-medium text-gray-500">1</td>', false)
+        ->assertSee('<td class="px-4 py-4 text-sm font-medium text-gray-500">2</td>', false);
 
     $this->actingAs($admin)
         ->get(route('admin.users.index', ['tab' => 'students', 'sort' => 'name', 'direction' => 'desc']))
@@ -72,8 +72,8 @@ it('numbers and sorts the guardian records', function () {
         ->get(route('admin.users.index', ['tab' => 'guardians', 'sort' => 'name', 'direction' => 'desc']))
         ->assertOk()
         ->assertSeeInOrder(['Guardian Zulu', 'Guardian Alpha'], false)
-        ->assertSee('<td class="px-4 py-3 text-sm text-gray-500">1</td>', false)
-        ->assertSee('<td class="px-4 py-3 text-sm text-gray-500">2</td>', false);
+        ->assertSee('<td class="px-4 py-4 text-sm font-medium text-gray-500">1</td>', false)
+        ->assertSee('<td class="px-4 py-4 text-sm font-medium text-gray-500">2</td>', false);
 });
 
 it('numbers and sorts the account tabs', function () {
@@ -83,6 +83,6 @@ it('numbers and sorts the account tabs', function () {
         ->get(route('admin.users.index', ['tab' => 'admin', 'sort' => 'name', 'direction' => 'desc']))
         ->assertOk()
         ->assertSeeInOrder(['Zulu Admin', 'Alpha Admin'], false)
-        ->assertSee('<td class="px-4 py-3 text-sm text-gray-500">1</td>', false)
-        ->assertSee('<td class="px-4 py-3 text-sm text-gray-500">2</td>', false);
+        ->assertSee('<td class="px-4 py-4 text-sm font-medium text-gray-500">1</td>', false)
+        ->assertSee('<td class="px-4 py-4 text-sm font-medium text-gray-500">2</td>', false);
 });

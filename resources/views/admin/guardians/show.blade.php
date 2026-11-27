@@ -123,6 +123,7 @@
         form-action="{{ route('admin.guardians.destroy', $guardian) }}"
         form-method="DELETE"
         confirm-label="Yes, delete">
+        This removes the guardian record{{ $guardian->user ? ' and their portal account' : '' }}, freeing the email address for a new registration.
         @if ($guardian->students->count() > 0)
             This guardian is linked to {{ $guardian->students->count() }} student(s). Deleting will remove those links too.
         @else

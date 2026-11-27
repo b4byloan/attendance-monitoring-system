@@ -1,22 +1,19 @@
 <x-layout title="Attendance Corrections" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <h2 class="text-lg font-semibold text-gray-900">
-            {{ $canReview ? 'Attendance Correction Requests' : 'My Correction Requests' }}
-        </h2>
-        <x-ui.button href="{{ route('attendance-corrections.create') }}">+ New Request</x-ui.button>
-    </div>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-2">
+        @if ($canReview)
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ route('attendance-corrections.index') }}" class="px-3 py-1.5 rounded-lg text-sm {{ !request('status') ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700' }}">All</a>
+                <a href="{{ route('attendance-corrections.index', ['status' => 'pending']) }}" class="px-3 py-1.5 rounded-lg text-sm {{ request('status') === 'pending' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700' }}">
+                    Pending @if($pendingCount) ({{ $pendingCount }}) @endif
+                </a>
+                <a href="{{ route('attendance-corrections.index', ['status' => 'approved']) }}" class="px-3 py-1.5 rounded-lg text-sm {{ request('status') === 'approved' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700' }}">Approved</a>
+                <a href="{{ route('attendance-corrections.index', ['status' => 'rejected']) }}" class="px-3 py-1.5 rounded-lg text-sm {{ request('status') === 'rejected' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700' }}">Rejected</a>
+            </div>
+        @endif
 
-    @if ($canReview)
-        <div class="flex gap-2 mb-4">
-            <a href="{{ route('attendance-corrections.index') }}" class="px-3 py-1.5 rounded-lg text-sm {{ !request('status') ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700' }}">All</a>
-            <a href="{{ route('attendance-corrections.index', ['status' => 'pending']) }}" class="px-3 py-1.5 rounded-lg text-sm {{ request('status') === 'pending' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700' }}">
-                Pending @if($pendingCount) ({{ $pendingCount }}) @endif
-            </a>
-            <a href="{{ route('attendance-corrections.index', ['status' => 'approved']) }}" class="px-3 py-1.5 rounded-lg text-sm {{ request('status') === 'approved' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700' }}">Approved</a>
-            <a href="{{ route('attendance-corrections.index', ['status' => 'rejected']) }}" class="px-3 py-1.5 rounded-lg text-sm {{ request('status') === 'rejected' ? 'bg-indigo-600 text-white' : 'bg-white border border-gray-300 text-gray-700' }}">Rejected</a>
-        </div>
-    @endif
+        <x-ui.button href="{{ route('attendance-corrections.create') }}" class="ml-auto">+ New Request</x-ui.button>
+    </div>
 
     <div class="space-y-4">
         @forelse ($corrections as $c)

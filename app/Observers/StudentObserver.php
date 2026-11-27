@@ -23,6 +23,19 @@ class StudentObserver
         $this->log('student_deleted', "Deleted student {$student->full_name} (LRN: {$student->lrn}).", $student);
     }
 
+    /**
+     * Deleting a student record also removes the portal account created for it,
+     * so the email address can be used to register again.
+     */
+    public function deleting(Student $student): void
+    {
+        $user = $student->user;
+
+        if ($user && $user->role === 'student') {
+            $user->delete();
+        }
+    }
+
     private function log(string $action, string $description, Student $student): void
     {
         ActivityLog::create([

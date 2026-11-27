@@ -145,6 +145,8 @@ class DummyAccountsSeeder extends Seeder
                 'password' => Hash::make('password'),
                 'role' => $role,
                 'is_active' => true,
+                // Demo accounts skip the emailed OTP verification step.
+                'email_verified_at' => now(),
             ],
         );
     }

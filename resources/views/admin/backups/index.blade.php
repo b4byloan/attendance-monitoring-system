@@ -1,14 +1,13 @@
 <x-layout title="Backup & Restore" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <h2 class="text-lg font-semibold text-gray-900">Backups</h2>
-        <form method="POST" action="{{ route('admin.backups.store') }}">
-            @csrf
-            <x-ui.button type="submit">+ Create Backup Now</x-ui.button>
-        </form>
-    </div>
-
     <x-ui.card>
+        <div class="mb-4 flex flex-wrap justify-end gap-2">
+            <form method="POST" action="{{ route('admin.backups.store') }}">
+                @csrf
+                <x-ui.button type="submit">+ Create Backup Now</x-ui.button>
+            </form>
+        </div>
+
         <x-ui.table>
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                 <tr>

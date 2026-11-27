@@ -23,6 +23,19 @@ class GuardianObserver
         $this->log('guardian_deleted', "Deleted guardian {$guardian->first_name} {$guardian->last_name}.", $guardian);
     }
 
+    /**
+     * Deleting a guardian record also removes the portal account created for it,
+     * so the email address can be used to register again.
+     */
+    public function deleting(Guardian $guardian): void
+    {
+        $user = $guardian->user;
+
+        if ($user && $user->role === 'parent') {
+            $user->delete();
+        }
+    }
+
     private function log(string $action, string $description, Guardian $guardian): void
     {
         ActivityLog::create([

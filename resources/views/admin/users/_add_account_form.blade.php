@@ -195,6 +195,31 @@
         @error('section_ids')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
     </div>
 
+    <dialog id="add-user-otp-modal" class="w-full max-w-md rounded-lg p-0 shadow-xl backdrop:bg-black/40">
+        <div class="relative p-6">
+            <button type="button" data-otp-cancel aria-label="Close dialog"
+                    class="absolute left-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <x-ui.icon name="x" class="h-4 w-4" />
+            </button>
+
+            <h3 class="mb-2 pl-8 text-lg font-semibold text-gray-900">Verification code required</h3>
+            <p class="mb-4 text-sm text-gray-600">
+                This creates a login account. A <strong>one-time password (OTP)</strong> will be emailed to the address you entered,
+                and the account stays pending until the user verifies it with that code.
+            </p>
+
+            <p class="mb-4 flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                <x-ui.icon name="alert-triangle" class="mt-0.5 h-4 w-4 shrink-0" />
+                <span>Make sure the email address is correct — the OTP is the only way the account can be activated.</span>
+            </p>
+
+            <div class="flex justify-end gap-2">
+                <x-ui.button type="button" variant="secondary" data-otp-cancel>Cancel</x-ui.button>
+                <x-ui.button type="button" id="add-user-otp-confirm">Yes, create and send OTP</x-ui.button>
+            </div>
+        </div>
+    </dialog>
+
     @once
         <script>
             document.addEventListener('DOMContentLoaded', function () {
@@ -253,6 +278,50 @@
 
                     form.addEventListener('input', updatePreview);
                     form.addEventListener('change', updatePreview);
+
+                    // Accounts with a login (teacher/admin/guard) need an emailed OTP,
+                    // so confirm before sending the form.
+                    const otpDialog = document.getElementById('add-user-otp-modal');
+                    const otpConfirm = document.getElementById('add-user-otp-confirm');
+                    const loginTypes = ['teacher', 'admin', 'guard'];
+
+                    function resetSubmitButtons() {
+                        form.querySelectorAll('button[type="submit"]').forEach(function (button) {
+                            if (button.dataset.originalText) {
+                                button.innerHTML = button.dataset.originalText;
+                            }
+
+                            button.disabled = false;
+                        });
+                    }
+
+                    form.addEventListener('submit', function (event) {
+                        if (form.dataset.otpConfirmed === 'true' || ! loginTypes.includes(typeSelect.value)) {
+                            return;
+                        }
+
+                        event.preventDefault();
+                        resetSubmitButtons();
+
+                        if (otpDialog) {
+                            otpDialog.showModal();
+                        }
+                    });
+
+                    if (otpConfirm && otpDialog) {
+                        otpConfirm.addEventListener('click', function () {
+                            form.dataset.otpConfirmed = 'true';
+                            otpDialog.close();
+                            form.requestSubmit();
+                        });
+
+                        otpDialog.querySelectorAll('[data-otp-cancel]').forEach(function (button) {
+                            button.addEventListener('click', function () {
+                                otpDialog.close();
+                                resetSubmitButtons();
+                            });
+                        });
+                    }
 
                     applyType(typeSelect.value);
                 });

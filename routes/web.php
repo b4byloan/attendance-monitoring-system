@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\OtpController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegistrationController;
 use App\Http\Controllers\GuardController;
@@ -52,6 +53,11 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [LoginController::class, 'destroy'])->name('logout');
+
+    Route::get('/verify-otp', [OtpController::class, 'show'])->name('otp.show');
+    Route::post('/verify-otp', [OtpController::class, 'verify'])->name('otp.verify')->middleware('throttle:10,1');
+    Route::post('/verify-otp/resend', [OtpController::class, 'resend'])->name('otp.resend')->middleware('throttle:3,1');
+    Route::post('/verify-otp/cancel', [OtpController::class, 'cancel'])->name('otp.cancel');
     Route::get('/account-settings', [AccountSettingsController::class, 'edit'])->name('account-settings.edit');
     Route::put('/account-settings', [AccountSettingsController::class, 'update'])->name('account-settings.update');
     Route::middleware('role:admin,sub_admin,guard')->prefix('scanner')->name('scanner.')->group(function () {

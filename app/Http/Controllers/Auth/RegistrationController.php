@@ -8,6 +8,7 @@ use App\Models\Section;
 use App\Models\Setting;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\OtpService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,8 @@ use Illuminate\View\View;
 
 class RegistrationController extends Controller
 {
+    public function __construct(private readonly OtpService $otp) {}
+
     public function create(): View|RedirectResponse
     {
         if (Auth::check()) {
@@ -83,8 +86,10 @@ class RegistrationController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('parent.dashboard')
-            ->with('success', 'Your parent account has been created.');
+        $this->otp->send($user);
+
+        return redirect()->route('otp.show')
+            ->with('success', 'We emailed a verification code to '.$user->email.'. Enter it below to activate your account.');
     }
 
     public function storeStudent(Request $request): RedirectResponse
@@ -148,7 +153,9 @@ class RegistrationController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('student.dashboard')
-            ->with('success', 'Your account has been linked to your school record.');
+        $this->otp->send($user);
+
+        return redirect()->route('otp.show')
+            ->with('success', 'We emailed a verification code to '.$user->email.'. Enter it below to activate your account.');
     }
 }

@@ -1,13 +1,5 @@
 <x-layout title="Subject Management" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <div>
-            <h2 class="text-lg font-semibold text-gray-900">Subjects</h2>
-            <p class="text-sm text-gray-500">Create subjects and assign the teachers who handle them.</p>
-        </div>
-        <x-ui.button type="button" onclick="document.getElementById('add-subject-modal').showModal()"><x-ui.icon name="plus" class="h-4 w-4" /> Add Subject</x-ui.button>
-    </div>
-
     <x-ui.card class="mb-6">
         <form method="GET" class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[200px]">
@@ -19,6 +11,7 @@
                 </x-ui.form-field>
             </div>
             <x-ui.button type="submit" variant="secondary">Search</x-ui.button>
+            <x-ui.button type="button" onclick="document.getElementById('add-subject-modal').showModal()"><x-ui.icon name="plus" class="h-4 w-4" /> Add Subject</x-ui.button>
             @if (request('search'))
                 <a href="{{ route('admin.subjects.index') }}" class="text-sm text-gray-500 hover:underline pb-2">Clear</a>
             @endif

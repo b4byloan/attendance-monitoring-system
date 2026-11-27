@@ -107,7 +107,7 @@ class SubjectController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'code' => ['required', 'string', 'max:30', 'alpha_dash', Rule::unique('subjects', 'code')->ignore($ignoreId)],
-            'description' => ['required', 'string', 'max:50'],
+            'description' => ['max:50'],
             'status' => ['required', 'in:active,inactive'],
             'teacher_ids' => ['nullable', 'array'],
             'teacher_ids.*' => [

@@ -11,66 +11,78 @@
 @endphp
 
 <x-ui.table :fit="true">
-    <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
+    <thead class="bg-gray-50 text-xs uppercase tracking-wider text-gray-700">
         <tr>
-            <th class="px-4 py-3 text-left">#</th>
-            <x-ui.sortable-th column="name" label="Name" />
-            <x-ui.sortable-th column="email" label="Email" />
-            <x-ui.sortable-th column="role" label="Role" />
+            <th scope="col" class="w-12 px-4 py-3 text-left font-semibold">#</th>
+            <x-ui.sortable-th column="name" label="Name" class="font-semibold" />
+            <x-ui.sortable-th column="email" label="Email" class="font-semibold" />
+            <x-ui.sortable-th column="role" label="Role" class="font-semibold" />
             @if ($showSections)
-                <th class="px-4 py-3 text-left">Assigned Sections</th>
+                <th scope="col" class="px-4 py-3 text-left font-semibold">Assigned Sections</th>
             @endif
-            <x-ui.sortable-th column="status" label="Status" />
-            <x-ui.sortable-th column="last_login" label="Last Login" />
-            <th class="px-4 py-3 text-left">Actions</th>
+            <x-ui.sortable-th column="status" label="Status" class="font-semibold" />
+            <x-ui.sortable-th column="last_login" label="Last Login" class="font-semibold" />
+            <th scope="col" class="px-4 py-3 text-left font-semibold">Actions</th>
         </tr>
     </thead>
-    <tbody class="divide-y">
+    <tbody class="divide-y divide-gray-200 bg-white">
         @forelse ($accounts as $account)
-            <tr>
-                <td class="px-4 py-3 text-sm text-gray-500">{{ $accounts->firstItem() + $loop->index }}</td>
-                <td class="px-4 py-3">
-                    <span class="flex items-center gap-3">
+            <tr class="bg-white transition-colors hover:bg-gray-50">
+                <td class="px-4 py-4 text-sm font-medium text-gray-500">{{ $accounts->firstItem() + $loop->index }}</td>
+                <td class="px-4 py-4">
+                    <div class="flex items-center gap-3">
                         <x-ui.avatar :name="$account->name" size="xs" />
-                        <span class="font-medium">{{ $account->name }}</span>
-                    </span>
+                        <span class="whitespace-nowrap font-semibold text-gray-900">{{ $account->name }}</span>
+                    </div>
                 </td>
-                <td class="px-4 py-3">
-                    <span class="flex flex-wrap items-center gap-2 break-all">
+                <td class="px-4 py-4">
+                    <span class="flex flex-wrap items-center gap-2 break-all text-sm text-gray-500">
                         {{ $account->email }}
                         <x-ui.copy-button :value="$account->email" what="email" :icon-only="true" />
                     </span>
                 </td>
-                <td class="px-4 py-3 whitespace-nowrap">
+                <td class="px-4 py-4 whitespace-nowrap">
                     <x-ui.badge color="{{ $roleColors[$account->role] ?? 'gray' }}">{{ $account->roleLabel() }}</x-ui.badge>
                 </td>
                 @if ($showSections)
-                    <td class="px-4 py-3 text-sm text-gray-600">
-                        <x-ui.optional-value :value="$account->sections->pluck('name')->join(', ')" />
+                    <td class="px-4 py-4">
+                        <div class="flex max-w-[240px] flex-wrap gap-1.5">
+                            @forelse ($account->sections as $section)
+                                <span class="inline-flex items-center rounded-sm bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
+                                    {{ $section->name }}
+                                </span>
+                            @empty
+                                <x-ui.optional-value />
+                            @endforelse
+                        </div>
                     </td>
                 @endif
-                <td class="px-4 py-3">
+                <td class="px-4 py-4 whitespace-nowrap">
                     <x-ui.badge color="{{ $account->is_active ? 'green' : 'gray' }}">{{ $account->is_active ? 'Active' : 'Inactive' }}</x-ui.badge>
                 </td>
-                <td class="px-4 py-3 text-sm text-gray-500">{{ $account->last_login_at?->format('M j, Y h:i A') ?? 'Never' }}</td>
-                <td class="px-4 py-3 space-x-2 text-sm whitespace-nowrap">
-                    <a href="{{ route('admin.users.edit', $account) }}" class="text-indigo-600 hover:underline">Edit</a>
-                    <button type="button" onclick="document.getElementById('account-reset-modal-{{ $account->id }}').showModal()" class="text-emerald-700 hover:underline">
-                        Reset password
-                    </button>
-                    @if ($account->id !== auth()->id())
-                        <button type="button" onclick="document.getElementById('account-status-modal-{{ $account->id }}').showModal()" class="text-amber-600 hover:underline">
-                            {{ $account->is_active ? 'Deactivate' : 'Activate' }}
+                <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $account->last_login_at?->format('M j, Y h:i A') ?? 'Never' }}</td>
+                <td class="px-4 py-4 text-sm">
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+                        <a href="{{ route('admin.users.edit', $account) }}" class="whitespace-nowrap font-medium text-blue-600 hover:underline">
+                            Edit
+                        </a>
+                        <button type="button" onclick="document.getElementById('account-reset-modal-{{ $account->id }}').showModal()" class="whitespace-nowrap font-medium text-emerald-600 hover:underline">
+                            Reset password
                         </button>
-                        <button type="button" onclick="document.getElementById('account-delete-modal-{{ $account->id }}').showModal()" class="text-red-600 hover:underline">Delete</button>
-                    @else
-                        <span class="text-gray-400 text-xs">(you)</span>
-                    @endif
+                        @if ($account->id !== auth()->id())
+                            <button type="button" onclick="document.getElementById('account-status-modal-{{ $account->id }}').showModal()" class="whitespace-nowrap font-medium text-amber-600 hover:underline">
+                                {{ $account->is_active ? 'Deactivate' : 'Activate' }}
+                            </button>
+                            <button type="button" onclick="document.getElementById('account-delete-modal-{{ $account->id }}').showModal()" class="whitespace-nowrap font-medium text-red-600 hover:underline">Delete</button>
+                        @else
+                            <span class="whitespace-nowrap text-xs text-gray-400">(you)</span>
+                        @endif
+                    </div>
                 </td>
             </tr>
         @empty
-            <tr>
-                <td colspan="{{ $showSections ? 8 : 7 }}">
+            <tr class="bg-white">
+                <td colspan="{{ $showSections ? 8 : 7 }}" class="px-4 py-6 text-center text-sm text-gray-500">
                     <x-ui.empty-state message="No accounts found." />
                 </td>
             </tr>

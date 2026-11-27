@@ -1,12 +1,5 @@
 <x-layout title="Announcements" :unread-count="$unreadCount" :recent-notifications="$recentNotifications">
 
-    <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
-        <h2 class="text-lg font-semibold text-gray-900">Announcements</h2>
-        @if ($canCreate)
-            <x-ui.button type="button" onclick="document.getElementById('add-announcement-modal').showModal()"><x-ui.icon name="plus" class="h-4 w-4" /> Create Announcements</x-ui.button>
-        @endif
-    </div>
-
     <div class="sticky top-0 z-20 -mx-1 mb-6 bg-gray-50/95 px-1 py-2 backdrop-blur">
         <x-ui.card>
             <form method="GET" class="flex flex-wrap items-end gap-3">
@@ -19,6 +12,9 @@
                     </x-ui.form-field>
                 </div>
                 <x-ui.button type="submit" variant="secondary">Search</x-ui.button>
+                @if ($canCreate)
+                    <x-ui.button type="button" onclick="document.getElementById('add-announcement-modal').showModal()"><x-ui.icon name="plus" class="h-4 w-4" /> Create Announcements</x-ui.button>
+                @endif
                 @if (request('search'))
                     <a href="{{ route('announcements.index') }}" class="pb-2 text-sm text-gray-500 hover:underline">Clear</a>
                 @endif

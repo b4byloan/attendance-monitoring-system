@@ -9,6 +9,7 @@ use App\Models\Guardian;
 use App\Models\Section;
 use App\Models\Student;
 use App\Models\User;
+use App\Services\OtpService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,6 +22,8 @@ class UserController extends Controller
 {
     use LoadsNotificationBell;
     use RedirectsAfterForm;
+
+    public function __construct(private readonly OtpService $otp) {}
 
     /** @var array<int, string> */
     private const ROLE_TABS = ['admin', 'teachers', 'guard'];
@@ -161,8 +164,10 @@ class UserController extends Controller
             $user->sections()->sync($validated['section_ids'] ?? []);
         }
 
+        $this->otp->send($user);
+
         return $this->redirectAfterForm($request, route('admin.users.index', ['tab' => $this->tabForRole($user->role)]))
-            ->with('success', 'Account created.');
+            ->with('success', 'Account created. A one-time password was emailed to '.$user->email.' so they can verify the account.');
     }
 
     /**
@@ -194,7 +199,7 @@ class UserController extends Controller
             ->with('success', match ($type) {
                 'student' => 'Student added.',
                 'guardian' => 'Guardian added.',
-                default => 'Account created.',
+                default => 'Account created. A one-time password was emailed so the account can be verified.',
             });
     }
 
@@ -275,6 +280,8 @@ class UserController extends Controller
         if (in_array($user->role, User::teachingRoles(), true)) {
             $user->sections()->sync($validated['section_ids'] ?? []);
         }
+
+        $this->otp->send($user);
     }
 
     public function edit(User $user): View
