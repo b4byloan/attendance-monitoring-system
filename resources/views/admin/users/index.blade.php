@@ -81,12 +81,13 @@
     @if ($tab === 'students')
         <x-ui.card class="mb-6">
             <h3 class="mb-4 text-base font-semibold text-gray-900">Student Records</h3>
-            <x-ui.table>
+            <x-ui.table :fit="true">
                 <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">#</th>
                         <x-ui.sortable-th column="lrn" label="LRN" />
                         <x-ui.sortable-th column="name" label="Name" />
+                        <x-ui.sortable-th column="grade_level" label="Grade Level" />
                         <x-ui.sortable-th column="section" label="Section" />
                         <x-ui.sortable-th column="email" label="Email" />
                         <x-ui.sortable-th column="status" label="Status" />
@@ -100,7 +101,7 @@
                             <td class="px-4 py-3">
                                 <span class="flex items-center gap-2">
                                     <span class="font-mono text-xs">{{ $student->lrn }}</span>
-                                    <x-ui.copy-button :value="$student->lrn" />
+                                    <x-ui.copy-button :value="$student->lrn" what="LRN" :icon-only="true"/>
                                 </span>
                             </td>
                             <td class="px-4 py-3">
@@ -109,7 +110,8 @@
                                     <span class="font-medium">{{ $student->full_name }}</span>
                                 </span>
                             </td>
-                            <td class="px-4 py-3">{{ $student->section->name ?? '—' }}</td>
+                            <td class="px-4 py-3 whitespace-nowrap"><x-ui.optional-value :value="$student->section->grade_level ?? null" /></td>
+                            <td class="px-4 py-3"><x-ui.optional-value :value="$student->section->name ?? null" /></td>
                             <td class="px-4 py-3">
                                 @if ($student->user?->email)
                                     <span class="flex flex-wrap items-center gap-2">
@@ -137,7 +139,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7">
+                            <td colspan="8">
                                 <x-ui.empty-state message="No student records found." />
                             </td>
                         </tr>
@@ -187,7 +189,7 @@
     @elseif ($tab === 'guardians')
         <x-ui.card class="mb-6">
             <h3 class="mb-4 text-base font-semibold text-gray-900">Guardian Records</h3>
-            <x-ui.table>
+            <x-ui.table :fit="true">
                 <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                     <tr>
                         <th class="px-4 py-3 text-left">#</th>
@@ -221,7 +223,7 @@
                                     </div>
                                 @endif
                             </td>
-                            <td class="px-4 py-3">{{ $guardian->relationship_to_student ?? '—' }}</td>
+                            <td class="px-4 py-3"><x-ui.optional-value :value="$guardian->relationship_to_student" /></td>
                             <td class="px-4 py-3">
                                 <x-ui.badge color="{{ $guardian->status === 'active' ? 'green' : 'gray' }}">{{ ucfirst($guardian->status) }}</x-ui.badge>
                             </td>

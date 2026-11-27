@@ -123,12 +123,12 @@
                                 </td>
                                 <td class="px-4 py-3 font-medium text-gray-900">{{ $record->student->full_name }}</td>
                                 <td class="px-4 py-3 font-mono text-xs">{{ $record->student->lrn }}</td>
-                                <td class="px-4 py-3">{{ $record->student->section->name ?? '—' }}</td>
-                                <td class="px-4 py-3">{{ $record->subject->name ?? '—' }}</td>
+                                <td class="px-4 py-3"><x-ui.optional-value :value="$record->student->section->name ?? null" /></td>
+                                <td class="px-4 py-3"><x-ui.optional-value :value="$record->subject->name ?? null" /></td>
                                 <td class="px-4 py-3">
                                     <x-ui.badge color="{{ $record->status === 'present' ? 'green' : 'gray' }}">{{ ucfirst($record->status) }}</x-ui.badge>
                                 </td>
-                                <td class="px-4 py-3">{{ $record->recordedBy->name ?? '—' }}</td>
+                                <td class="px-4 py-3"><x-ui.optional-value :value="$record->recordedBy->name ?? null" /></td>
                             </tr>
                         @empty
                             <tr>

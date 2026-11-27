@@ -46,7 +46,7 @@
                             </span>
                         </td>
                         <td class="px-4 py-3">{{ $student->full_name }}</td>
-                        <td class="px-4 py-3">{{ $student->section->name ?? '—' }}</td>
+                        <td class="px-4 py-3"><x-ui.optional-value :value="$student->section->name ?? null" /></td>
                         <td class="px-4 py-3">
                             @if ($student->user?->email)
                                 <span class="flex flex-wrap items-center gap-2">

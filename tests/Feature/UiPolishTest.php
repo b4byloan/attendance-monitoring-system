@@ -6,6 +6,7 @@ use App\Models\Guardian;
 use App\Models\Section;
 use App\Models\Student;
 use App\Models\User;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 
 function uiPolishFixture(): array
@@ -32,6 +33,21 @@ function uiPolishFixture(): array
 
     return [$admin, $section, $student, $studentUser];
 }
+
+it('renders missing optional values with a muted fallback and preserves present values', function () {
+    $missing = Blade::render('<x-ui.optional-value />');
+    $customFallback = Blade::render('<x-ui.optional-value fallback="Unassigned" />');
+    $present = Blade::render('<x-ui.optional-value value="Assigned" />');
+    $zero = Blade::render('<x-ui.optional-value :value="$value" />', ['value' => 0]);
+
+    expect($missing)->toContain('class="text-slate-400 italic"')
+        ->toContain('style="color: #94a3b8; font-style: italic;"')
+        ->toContain('>N/A</span>');
+    expect($customFallback)->toContain('class="text-slate-400 italic"')
+        ->toContain('>Unassigned</span>');
+    expect($present)->toContain('>Assigned</span>')->not->toContain('text-slate-400 italic');
+    expect($zero)->toContain('>0</span>')->not->toContain('>N/A</span>');
+});
 
 it('offers copy buttons for emails and phone numbers', function () {
     [$admin, , , $studentUser] = uiPolishFixture();

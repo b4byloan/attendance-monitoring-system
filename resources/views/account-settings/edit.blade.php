@@ -8,76 +8,70 @@
         <x-ui.back-button :href="route($user->dashboardRoute())" label="Back to dashboard" />
     </div>
 
-    <div class="{{ $student ? 'mb-6 grid grid-cols-1 items-start gap-6 md:grid-cols-2' : 'mb-6' }}">
-        <x-ui.card title="Account Information">
-            <div class="mb-4 flex items-center gap-4">
-                <x-ui.avatar :name="$user->name" size="lg" />
-                <div>
-                    <p class="text-base font-semibold text-gray-900">{{ $user->name }}</p>
-                    <p class="text-sm text-gray-500">{{ $user->roleLabel() }}</p>
-                </div>
+    <x-ui.card title="Information" class="mb-6">
+        <div class="mb-4 flex items-center gap-4">
+            <x-ui.avatar :name="$user->name" size="lg" />
+            <div>
+                <p class="text-base font-semibold text-gray-900">{{ $student->full_name ?? $user->name }}</p>
+                <p class="text-sm text-gray-500">{{ $user->roleLabel() }}</p>
             </div>
-            <dl class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+        </div>
+        <dl class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
+            <div>
+                <dt class="text-xs uppercase text-gray-500">Role</dt>
+                <dd class="mt-0.5 font-medium">{{ $user->roleLabel() }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs uppercase text-gray-500">Login Email</dt>
+                <dd class="mt-0.5 flex flex-wrap items-center gap-2 font-medium">
+                    {{ $user->email }}
+                    <x-ui.copy-button :value="$user->email" what="email" :icon-only="true" />
+                </dd>
+            </div>
+            <div>
+                <dt class="text-xs uppercase text-gray-500">Account Created</dt>
+                <dd class="mt-0.5 font-medium">{{ $user->created_at?->format('M j, Y') ?? '—' }}</dd>
+            </div>
+            <div>
+                <dt class="text-xs uppercase text-gray-500">Last Login</dt>
+                <dd class="mt-0.5 font-medium">{{ $user->last_login_at?->format('M j, Y g:i A') ?? '—' }}</dd>
+            </div>
+
+            @if ($student)
                 <div>
-                    <dt class="text-xs uppercase text-gray-500">Role</dt>
-                    <dd class="mt-0.5 font-medium">{{ $user->roleLabel() }}</dd>
+                    <dt class="text-xs uppercase text-gray-500">Full Name</dt>
+                    <dd class="mt-0.5 font-medium">{{ $student->full_name }}</dd>
                 </div>
                 <div>
-                    <dt class="text-xs uppercase text-gray-500">Login Email</dt>
-                    <dd class="mt-0.5 flex flex-wrap items-center gap-2 font-medium">
-                        {{ $user->email }}
-                        <x-ui.copy-button :value="$user->email" what="email" :icon-only="true" />
+                    <dt class="text-xs uppercase text-gray-500">LRN</dt>
+                    <dd class="mt-0.5 flex flex-wrap items-center gap-2">
+                        <span class="font-mono font-medium">{{ $student->lrn }}</span>
+                        <x-ui.copy-button :value="$student->lrn" what="LRN" :icon-only="true" />
                     </dd>
                 </div>
                 <div>
-                    <dt class="text-xs uppercase text-gray-500">Account Created</dt>
-                    <dd class="mt-0.5 font-medium">{{ $user->created_at?->format('M j, Y') ?? '—' }}</dd>
+                    <dt class="text-xs uppercase text-gray-500">Status</dt>
+                    <dd class="mt-0.5">
+                        <x-ui.badge color="{{ $student->status === 'active' ? 'green' : 'gray' }}">
+                            {{ ucfirst($student->status) }}
+                        </x-ui.badge>
+                    </dd>
                 </div>
                 <div>
-                    <dt class="text-xs uppercase text-gray-500">Last Login</dt>
-                    <dd class="mt-0.5 font-medium">{{ $user->last_login_at?->format('M j, Y g:i A') ?? '—' }}</dd>
+                    <dt class="text-xs uppercase text-gray-500">Grade Level</dt>
+                    <dd class="mt-0.5 font-medium">{{ $student->section->grade_level ?? '—' }}</dd>
                 </div>
-            </dl>
-        </x-ui.card>
-
-        @if ($student)
-            <x-ui.card title="Student Information">
-                <dl class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
-                    <div>
-                        <dt class="text-xs uppercase text-gray-500">Full Name</dt>
-                        <dd class="mt-0.5 font-medium">{{ $student->full_name }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-xs uppercase text-gray-500">LRN</dt>
-                        <dd class="mt-0.5 flex flex-wrap items-center gap-2">
-                            <span class="font-mono font-medium">{{ $student->lrn }}</span>
-                            <x-ui.copy-button :value="$student->lrn" />
-                        </dd>
-                    </div>
-                    <div>
-                        <dt class="text-xs uppercase text-gray-500">Status</dt>
-                        <dd class="mt-0.5">
-                            <x-ui.badge color="{{ $student->status === 'active' ? 'green' : 'gray' }}">
-                                {{ ucfirst($student->status) }}
-                            </x-ui.badge>
-                        </dd>
-                    </div>
-                    <div>
-                        <dt class="text-xs uppercase text-gray-500">Grade Level</dt>
-                        <dd class="mt-0.5 font-medium">{{ $student->section->grade_level ?? '—' }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-xs uppercase text-gray-500">Section</dt>
-                        <dd class="mt-0.5 font-medium">{{ $student->section->name ?? '—' }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-xs uppercase text-gray-500">Adviser</dt>
-                        <dd class="mt-0.5 font-medium">{{ $student->section->adviser->name ?? '—' }}</dd>
-                    </div>
-                </dl>
-            </x-ui.card>
-        @endif
-    </div>
+                <div>
+                    <dt class="text-xs uppercase text-gray-500">Section</dt>
+                    <dd class="mt-0.5 font-medium">{{ $student->section->name ?? '—' }}</dd>
+                </div>
+                <div>
+                    <dt class="text-xs uppercase text-gray-500">Adviser</dt>
+                    <dd class="mt-0.5 font-medium">{{ $student->section->adviser->name ?? '—' }}</dd>
+                </div>
+            @endif
+        </dl>
+    </x-ui.card>
 
     <x-ui.card title="Personal Information">
         <form method="POST" action="{{ route('account-settings.update') }}" class="space-y-4">

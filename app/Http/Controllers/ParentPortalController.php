@@ -9,6 +9,7 @@ use App\Models\GuardianLinkRequest;
 use App\Models\Section;
 use App\Models\Student;
 use App\Notifications\GuardianLinkRequestedNotification;
+use App\Services\SubjectAttendanceService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -63,7 +64,6 @@ class ParentPortalController extends Controller
             })
             ->orderByDesc('is_pinned')
             ->orderByDesc('publish_date')
-            ->limit(5)
             ->get();
 
         return view('parent.dashboard', compact(
@@ -71,7 +71,7 @@ class ParentPortalController extends Controller
         ))->with($this->notificationBellData());
     }
 
-    public function attendance(Request $request, Student $student)
+    public function attendance(Request $request, Student $student, SubjectAttendanceService $subjectAttendance)
     {
         $this->authorizeAccess($student);
 
@@ -90,7 +90,19 @@ class ParentPortalController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('parent.attendance', compact('student', 'students', 'records'));
+        $subjectAttendance = $subjectAttendance->forStudent(
+            $student,
+            $request->input('date'),
+            $request->input('month'),
+        );
+
+        return view('parent.attendance', [
+            'student' => $student,
+            'students' => $students,
+            'records' => $records,
+            'subjectRows' => $subjectAttendance['rows'],
+            'subjectSessions' => $subjectAttendance['sessions'],
+        ])->with($this->notificationBellData());
     }
 
     public function linkStudent(Request $request)
@@ -179,6 +191,7 @@ class ParentPortalController extends Controller
         $student->user->notify(new GuardianLinkRequestedNotification(
             guardianName: trim($guardian->first_name.' '.$guardian->last_name),
             relationship: $guardian->relationship_to_student ?: 'Guardian',
+            linkRequestId: $linkRequest->id,
         ));
 
         return redirect()->route('parent.link-student.index')

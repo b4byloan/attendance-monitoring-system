@@ -10,6 +10,7 @@ test('parent can register and is linked to a guardian record', function () {
         'name' => 'Maria Santos',
         'email' => 'maria@example.com',
         'phone_number' => '09171234567',
+        'relationship_to_student' => 'Mother',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ]);
@@ -28,6 +29,7 @@ test('parent can register and is linked to a guardian record', function () {
         'last_name' => 'Santos',
         'phone_number' => '09171234567',
         'email' => 'maria@example.com',
+        'relationship_to_student' => 'Mother',
     ]);
 
     expect(Guardian::where('user_id', $user->id)->firstOrFail()->user->is($user))->toBeTrue();
@@ -229,7 +231,7 @@ test('student registration requires a valid lrn and account details', function (
 test('registration page shows both registration tabs', function () {
     $this->get('/register')
         ->assertOk()
-        ->assertSee('Parent Registration')
+        ->assertSee('Guardian Registration')
         ->assertSee('Student Registration')
         ->assertSee('name="suffix"', false);
 });
@@ -243,14 +245,38 @@ test('student registration page uses a suffix dropdown and icon groups', functio
         ->assertSee('border-r border-slate-200', false);
 });
 
+test('parent registration page offers a role dropdown from the guardian options', function () {
+    $this->get('/register')
+        ->assertOk()
+        ->assertSee('<select id="relationship_to_student" name="relationship_to_student"', false)
+        ->assertSee('<option value="Mother"', false)
+        ->assertSee('<option value="Father"', false)
+        ->assertSee('<option value="Guardian"', false)
+        ->assertSee('Your relationship to the student');
+});
+
 test('registration requires valid account details', function () {
     $this->post('/register', [
         'name' => '',
         'email' => 'not-an-email',
         'phone_number' => '',
+        'relationship_to_student' => '',
         'password' => 'short',
         'password_confirmation' => 'different',
-    ])->assertSessionHasErrors(['name', 'email', 'phone_number', 'password']);
+    ])->assertSessionHasErrors(['name', 'email', 'phone_number', 'relationship_to_student', 'password']);
+
+    $this->assertDatabaseCount('users', 0);
+});
+
+test('parent registration only accepts a known role', function () {
+    $this->post('/register', [
+        'name' => 'Maria Santos',
+        'email' => 'maria@example.com',
+        'phone_number' => '09171234567',
+        'relationship_to_student' => 'Wizard',
+        'password' => 'password123',
+        'password_confirmation' => 'password123',
+    ])->assertSessionHasErrors('relationship_to_student');
 
     $this->assertDatabaseCount('users', 0);
 });
@@ -260,6 +286,7 @@ test('parent registration enforces a valid mobile number', function () {
         'name' => 'Maria Santos',
         'email' => 'maria@example.com',
         'phone_number' => '12345',
+        'relationship_to_student' => 'Father',
         'password' => 'password123',
         'password_confirmation' => 'password123',
     ])->assertSessionHasErrors('phone_number');

@@ -50,6 +50,7 @@ class RegistrationController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
             'phone_number' => ['required', 'digits:11', 'regex:/^09\d{9}$/'],
+            'relationship_to_student' => ['required', 'string', Rule::in(Guardian::RELATIONSHIPS)],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
@@ -71,7 +72,7 @@ class RegistrationController extends Controller
                 'last_name' => $lastName,
                 'phone_number' => $validated['phone_number'],
                 'email' => $validated['email'],
-                'relationship_to_student' => 'Parent',
+                'relationship_to_student' => $validated['relationship_to_student'],
                 'status' => 'active',
                 'user_id' => $user->id,
             ]);

@@ -456,6 +456,7 @@ class UserController extends Controller
         $sortable = [
             'lrn' => 'students.lrn',
             'name' => 'students.last_name',
+            'grade_level' => 'sections.grade_level',
             'section' => 'sections.name',
             'email' => 'users.email',
             'status' => 'students.status',
@@ -467,7 +468,7 @@ class UserController extends Controller
             return;
         }
 
-        if ($sort === 'section') {
+        if ($sort === 'section' || $sort === 'grade_level') {
             $query->leftJoin('sections', 'sections.id', '=', 'students.section_id')->select('students.*');
         }
 

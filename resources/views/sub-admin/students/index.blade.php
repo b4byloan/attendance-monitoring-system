@@ -76,7 +76,7 @@
                             </span>
                         </td>
                         <td class="px-4 py-3">{{ $student->full_name }}</td>
-                        <td class="px-4 py-3">{{ $student->section->name ?? '—' }}</td>
+                        <td class="px-4 py-3"><x-ui.optional-value :value="$student->section->name ?? null" /></td>
                         <td class="px-4 py-3">
                             <x-ui.badge color="{{ $student->status === 'active' ? 'green' : 'gray' }}">{{ ucfirst($student->status) }}</x-ui.badge>
                         </td>

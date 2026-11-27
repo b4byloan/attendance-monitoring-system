@@ -147,9 +147,6 @@ Route::middleware('role:student')->prefix('student')->name('student.')->group(fu
     Route::get('/dashboard', [StudentPortalController::class, 'dashboard'])->name('dashboard');
     Route::get('/attendance', [StudentPortalController::class, 'attendance'])->name('attendance');
     Route::redirect('/profile', '/account-settings')->name('profile');
-    Route::get('/link-requests', [StudentPortalController::class, 'linkRequests'])->name('link-requests.index');
-    Route::delete('/link-requests', [StudentPortalController::class, 'destroyAllLinkRequests'])->name('link-requests.destroy-all');
-    Route::delete('/link-requests/{linkRequest}', [StudentPortalController::class, 'destroyLinkRequest'])->name('link-requests.destroy');
     Route::post('/link-requests/{linkRequest}/accept', [StudentPortalController::class, 'acceptLinkRequest'])->name('link-requests.accept');
     Route::post('/link-requests/{linkRequest}/deny', [StudentPortalController::class, 'denyLinkRequest'])->name('link-requests.deny');
     Route::get('/qr-code', [QrCodeController::class, 'showForStudent'])->name('qr-code');

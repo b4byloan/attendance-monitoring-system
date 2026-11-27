@@ -62,7 +62,7 @@
                                     'bg-white text-emerald-800 shadow-sm ring-1 ring-emerald-200' => $activeTab === 'parent',
                                     'text-emerald-700 hover:bg-white/60 hover:text-emerald-900' => $activeTab !== 'parent',
                                 ])>
-                            Parent Registration
+                            Guardian Registration
                         </button>
                         <button type="button" role="tab" id="student-tab" aria-controls="student-panel"
                                 aria-selected="{{ $activeTab === 'student' ? 'true' : 'false' }}"
@@ -112,6 +112,19 @@
                                        class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
                             </x-auth.field>
                             <p class="mt-1 text-xs text-slate-500">Enter an 11-digit mobile number starting with 09.</p>
+                        </div>
+                        <div>
+                            <label for="relationship_to_student" class="block text-sm font-semibold text-slate-700">Role</label>
+                            <x-auth.field icon="users" name="relationship_to_student">
+                                @php $currentRole = old('registration_type') === 'parent' ? old('relationship_to_student', 'Parent') : 'Parent'; @endphp
+                                <select id="relationship_to_student" name="relationship_to_student" required
+                                        class="w-full border-0 bg-transparent px-4 py-3 text-slate-900 outline-none focus:ring-0">
+                                    @foreach (\App\Models\Guardian::RELATIONSHIPS as $relationship)
+                                        <option value="{{ $relationship }}" @selected($currentRole === $relationship)>{{ $relationship }}</option>
+                                    @endforeach
+                                </select>
+                            </x-auth.field>
+                            <p class="mt-1 text-xs text-slate-500">Your relationship to the student you are registering for.</p>
                         </div>
                         <div>
                             <label for="password" class="block text-sm font-semibold text-slate-700">Password</label>

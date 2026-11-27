@@ -48,7 +48,7 @@ class SubjectController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $validated = $this->validateSubject($request);
-        $validated['code'] = Str::upper($validated['code']);
+        $validated['name'] = Str::upper($validated['name']);
 
         $subject = Subject::create($validated);
         $subject->teachers()->sync($validated['teacher_ids'] ?? []);
@@ -71,7 +71,7 @@ class SubjectController extends Controller
     public function update(Request $request, Subject $subject): RedirectResponse
     {
         $validated = $this->validateSubject($request, $subject->id);
-        $validated['code'] = Str::upper($validated['code']);
+        $validated['name'] = Str::upper($validated['name']);
 
         $subject->update($validated);
         $subject->teachers()->sync($validated['teacher_ids'] ?? []);

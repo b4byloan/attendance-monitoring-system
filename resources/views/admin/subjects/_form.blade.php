@@ -6,7 +6,7 @@
     <label class="block text-sm font-medium text-gray-700 mb-1">Subject Name</label>
     <x-ui.form-field icon="scroll-text" name="name">
         <input type="text" name="name" value="{{ old('name', $subject->name ?? '') }}" maxlength="255" required
-               class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
+               oninput="this.value = this.value.toUpperCase()" class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
     </x-ui.form-field>
     @error('name')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
 </div>
@@ -16,13 +16,13 @@
     <x-ui.form-field icon="hash" name="code">
         <input type="text" name="code" value="{{ old('code', $subject->code ?? '') }}" maxlength="30" required
                placeholder="e.g. MATH" pattern="[A-Za-z0-9_-]+" title="Letters, numbers, dashes and underscores only"
-               class="w-full border-0 bg-transparent px-3 py-2 text-sm uppercase text-gray-900 outline-none focus:ring-0">
+               class="w-full border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">
     </x-ui.form-field>
     @error('code')<p class="text-red-600 text-xs mt-1">{{ $message }}</p>@enderror
 </div>
 
 <div>
-    <label class="block text-sm font-medium text-gray-700 mb-1">Description (max 50 characters/optional)</label>
+    <label class="block text-sm font-medium text-gray-700 mb-1">Description <span class="text-xs text-gray-500">(max 50 characters/optional)</span></label>
     <x-ui.form-field icon="pencil" name="description">
         <textarea name="description" rows="3" maxlength="50"
                   class="max-h-32 w-full resize-y overflow-y-auto border-0 bg-transparent px-3 py-2 text-sm text-gray-900 outline-none focus:ring-0">{{ old('description', $subject->description ?? '') }}</textarea>

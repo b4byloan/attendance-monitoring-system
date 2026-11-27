@@ -1,7 +1,7 @@
 @props(['title' => 'Guard', 'unreadCount' => 0, 'recentNotifications' => null])
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,7 +10,7 @@
     @vite('resources/css/app.css')
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-900 antialiased">
+<body class="h-full overflow-hidden bg-gray-50 text-gray-900 antialiased">
 <x-ui.toast-container />
 <div class="flex h-screen flex-col">
     <header class="z-10 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 sm:px-6">
@@ -33,7 +33,7 @@
         </div>
     </header>
 
-    <main class="flex-1 overflow-y-auto p-4 sm:p-6">
+    <main class="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6" style="contain: layout paint">
         <div class="mx-auto max-w-5xl">
             {{ $slot }}
         </div>

@@ -7,7 +7,7 @@ use App\Models\AttendanceRecord;
 use App\Models\GuardianLinkRequest;
 use App\Notifications\GuardianLinkRespondedNotification;
 use App\Services\QrCodeService;
-use Illuminate\Http\RedirectResponse;
+use App\Services\SubjectAttendanceService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -47,7 +47,7 @@ class StudentPortalController extends Controller
         ])->with($this->notificationBellData());
     }
 
-    public function attendance(Request $request)
+    public function attendance(Request $request, SubjectAttendanceService $subjectAttendance)
     {
         $student = $request->user()->student;
 
@@ -66,23 +66,18 @@ class StudentPortalController extends Controller
         $records = $query->orderByDesc('attendance_date')->orderByDesc('scanned_at')
             ->paginate(10)->withQueryString();
 
-        return view('student.attendance', compact('student', 'records'))->with($this->notificationBellData());
-    }
+        $subjectAttendance = $subjectAttendance->forStudent(
+            $student,
+            $request->input('date'),
+            $request->input('month'),
+        );
 
-    public function linkRequests(Request $request)
-    {
-        $student = $request->user()->student;
-
-        if (! $student) {
-            return view('student.no-account')->with($this->notificationBellData());
-        }
-
-        $requests = GuardianLinkRequest::with('guardian')
-            ->where('student_id', $student->id)
-            ->latest()
-            ->get();
-
-        return view('student.link-requests', compact('student', 'requests'))->with($this->notificationBellData());
+        return view('student.attendance', [
+            'student' => $student,
+            'records' => $records,
+            'subjectRows' => $subjectAttendance['rows'],
+            'subjectSessions' => $subjectAttendance['sessions'],
+        ])->with($this->notificationBellData());
     }
 
     public function acceptLinkRequest(Request $request, GuardianLinkRequest $linkRequest)
@@ -93,30 +88,6 @@ class StudentPortalController extends Controller
     public function denyLinkRequest(Request $request, GuardianLinkRequest $linkRequest)
     {
         return $this->respondToLinkRequest($request, $linkRequest, false);
-    }
-
-    public function destroyLinkRequest(Request $request, GuardianLinkRequest $linkRequest): RedirectResponse
-    {
-        $student = $request->user()->student;
-
-        abort_unless($student && $linkRequest->student_id === $student->id, 403);
-
-        $linkRequest->delete();
-
-        return redirect()->route('student.link-requests.index')
-            ->with('success', 'Link request deleted.');
-    }
-
-    public function destroyAllLinkRequests(Request $request): RedirectResponse
-    {
-        $student = $request->user()->student;
-
-        abort_unless($student, 403);
-
-        GuardianLinkRequest::where('student_id', $student->id)->delete();
-
-        return redirect()->route('student.link-requests.index')
-            ->with('success', 'All link requests deleted.');
     }
 
     private function respondToLinkRequest(Request $request, GuardianLinkRequest $linkRequest, bool $accepted)

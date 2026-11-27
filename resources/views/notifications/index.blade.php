@@ -30,12 +30,40 @@
 
         <div class="space-y-3">
             @forelse ($notifications as $n)
-                <a href="{{ route('notifications.read', $n->id) }}"
-                   class="block min-w-0 break-words rounded-lg bg-white p-4 shadow sm:p-5 {{ $n->read_at ? '' : 'border-l-4 border-blue-500' }}">
-                    <p class="text-base font-semibold leading-6 {{ $n->read_at ? 'text-gray-600' : 'text-gray-900' }}">{{ $n->data['title'] }}</p>
-                    <p class="mt-1 text-base leading-6 text-gray-600">{{ $n->data['message'] }}</p>
-                    <p class="mt-2 text-sm text-gray-500">{{ $n->created_at->diffForHumans() }}</p>
-                </a>
+                @php
+                    $linkRequestId = $n->data['link_request_id'] ?? null;
+                    $linkRequest = $linkRequestId ? \App\Models\GuardianLinkRequest::find($linkRequestId) : null;
+                    $canRespond = $linkRequest
+                        && $linkRequest->isPending()
+                        && auth()->user()->student
+                        && $linkRequest->student_id === auth()->user()->student->id;
+                @endphp
+
+                @if ($canRespond)
+                    <div class="min-w-0 break-words rounded-lg bg-white p-4 shadow sm:p-5 {{ $n->read_at ? '' : 'border-l-4 border-blue-500' }}">
+                        <p class="text-base font-semibold leading-6 {{ $n->read_at ? 'text-gray-600' : 'text-gray-900' }}">{{ $n->data['title'] }}</p>
+                        <p class="mt-1 text-base leading-6 text-gray-600">{{ $n->data['message'] }}</p>
+                        <p class="mt-2 text-sm text-gray-500">{{ $n->created_at->diffForHumans() }}</p>
+
+                        <div class="mt-3 flex flex-wrap gap-2">
+                            <form method="POST" action="{{ route('student.link-requests.accept', $linkRequest) }}">
+                                @csrf
+                                <x-ui.button type="submit" size="sm">Accept</x-ui.button>
+                            </form>
+                            <form method="POST" action="{{ route('student.link-requests.deny', $linkRequest) }}">
+                                @csrf
+                                <x-ui.button type="submit" variant="secondary" size="sm">Deny</x-ui.button>
+                            </form>
+                        </div>
+                    </div>
+                @else
+                    <a href="{{ route('notifications.read', $n->id) }}"
+                       class="block min-w-0 break-words rounded-lg bg-white p-4 shadow sm:p-5 {{ $n->read_at ? '' : 'border-l-4 border-blue-500' }}">
+                        <p class="text-base font-semibold leading-6 {{ $n->read_at ? 'text-gray-600' : 'text-gray-900' }}">{{ $n->data['title'] }}</p>
+                        <p class="mt-1 text-base leading-6 text-gray-600">{{ $n->data['message'] }}</p>
+                        <p class="mt-2 text-sm text-gray-500">{{ $n->created_at->diffForHumans() }}</p>
+                    </a>
+                @endif
             @empty
                 <p class="text-gray-400 text-center py-8">No notifications yet.</p>
             @endforelse

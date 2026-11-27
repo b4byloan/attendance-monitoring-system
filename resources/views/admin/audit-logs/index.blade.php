@@ -75,7 +75,7 @@
                                 —
                             @endif
                         </td>
-                        <td class="px-4 py-3 text-sm text-gray-400">{{ $log->ip_address ?? '—' }}</td>
+                        <td class="px-4 py-3 text-sm text-gray-400"><x-ui.optional-value :value="$log->ip_address" /></td>
                         <td class="px-4 py-3 text-sm">
                             <button type="button" onclick="document.getElementById('audit-log-modal-{{ $log->id }}').showModal()"
                                     class="text-indigo-600 hover:underline">View</button>

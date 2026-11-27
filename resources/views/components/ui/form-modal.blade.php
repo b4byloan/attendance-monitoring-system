@@ -10,7 +10,7 @@
 <dialog id="{{ $id }}" class="w-full {{ $maxWidth }} rounded-lg p-0 shadow-xl backdrop:bg-black/40">
     <div class="relative max-h-[90vh] overflow-y-auto p-6">
         <button type="button" onclick="document.getElementById('{{ $id }}').close()" aria-label="Close dialog"
-                class="absolute left-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                class="absolute left-3 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-400 bg-gray-200  transition hover:bg-gray-100 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
             <x-ui.icon name="x" class="h-4 w-4" />
         </button>
 

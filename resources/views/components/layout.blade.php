@@ -1,7 +1,7 @@
 @props(['title' => 'Dashboard', 'unreadCount' => 0, 'recentNotifications' => null])
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,7 +10,7 @@
     @vite('resources/css/app.css')
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-900 antialiased">
+<body class="h-full overflow-hidden bg-gray-50 text-gray-900 antialiased">
 <x-ui.toast-container />
 <div class="flex h-screen overflow-hidden">
 
@@ -19,11 +19,14 @@
          onclick="document.getElementById('sidebar-toggle').checked = false"></div>
 
     <aside class="fixed inset-y-0 left-0 z-30 flex w-64 shrink-0 -translate-x-full flex-col overflow-y-auto border-r border-emerald-950/40 bg-emerald-900 text-emerald-50 transition-transform duration-200 peer-checked:translate-x-0 lg:static lg:translate-x-0">
-        <div class="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-5">
+        <div class="school-brand flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-5">
             <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-white ring-1 ring-white/20">
-                <x-ui.icon name="school" class="h-5 w-5" />
+                <x-ui.icon name="school" class="school-brand-icon h-5 w-5" />
             </span>
-            <span class="text-base font-bold text-white">School System</span>
+            <a href="{{ route('home') }}" aria-label="Go to homepage" class="group inline-grid overflow-hidden text-base font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60">
+                <span class="col-start-1 row-start-1 transition-transform duration-300 ease-in-out group-hover:-translate-y-full group-focus-visible:-translate-y-full motion-reduce:transition-none">School System</span>
+                <span aria-hidden="true" class="col-start-1 row-start-1 translate-y-full transition-transform duration-300 ease-in-out group-hover:translate-y-0 group-focus-visible:translate-y-0 motion-reduce:transition-none">To Homepage</span>
+            </a>
         </div>
 
         <nav class="flex-1 space-y-1.5 p-3">
@@ -171,7 +174,7 @@
         </nav>
     </aside>
 
-    <div class="flex min-w-0 flex-1 flex-col">
+    <div class="flex min-h-0 min-w-0 flex-1 flex-col">
         <header class="z-10 flex h-16 shrink-0 items-center justify-between border-b border-gray-200 bg-white px-4 lg:px-8">
             <div class="flex items-center gap-3">
                 <label for="sidebar-toggle" class="-ml-1 cursor-pointer rounded-md p-1.5 text-gray-700 transition hover:bg-gray-100 focus-within:ring-2 focus-within:ring-emerald-500 lg:hidden">
@@ -185,7 +188,7 @@
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto p-4 lg:p-8">
+        <main class="min-h-0 flex-1 overflow-y-auto p-4 lg:p-8" style="contain: layout paint">
             {{ $slot }}
         </main>
     </div>

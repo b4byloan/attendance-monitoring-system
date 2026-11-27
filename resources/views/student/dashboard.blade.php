@@ -52,23 +52,22 @@
             <a href="{{ route('student.attendance') }}" class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline">Full history <x-ui.icon name="arrow-right" class="h-3.5 w-3.5" /></a>
         </div>
         @forelse ($recent as $record)
-            <div class="flex justify-between py-2.5 border-b border-gray-100 text-sm last:border-0">
-                <span>{{ $record->attendance_date->format('D, M j') }} — {{ $record->type === 'check_in' ? 'Check-In' : 'Check-Out' }}</span>
-                <span class="text-gray-500">{{ $record->scanned_at->format('h:i A') }}</span>
+            <div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-b border-gray-100 py-2.5 text-sm last:border-0">
+                <span class="min-w-0 break-words">{{ $record->attendance_date->format('D, M j') }} — {{ $record->type === 'check_in' ? 'Check-In' : 'Check-Out' }}</span>
+                <span class="whitespace-nowrap tabular-nums text-gray-500">{{ $record->scanned_at->format('h:i A') }}</span>
             </div>
         @empty
             <x-ui.empty-state message="No attendance recorded yet." />
         @endforelse
     </x-ui.card>
 
-    <div class="flex flex-wrap gap-4 text-sm">
-        <a href="{{ route('student.link-requests.index') }}" class="text-indigo-600 hover:underline">
-            Guardian link requests
-            @if ($pendingLinkRequests > 0)
-                <span class="ml-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-800">{{ $pendingLinkRequests }}</span>
-            @endif
-        </a>
-    </div>
+    @if ($pendingLinkRequests > 0)
+        <div class="text-sm">
+            <a href="{{ route('notifications.index') }}" class="text-indigo-600 hover:underline">
+                You have {{ $pendingLinkRequests }} guardian link request{{ $pendingLinkRequests === 1 ? '' : 's' }} waiting in your notifications.
+            </a>
+        </div>
+    @endif
 
     <dialog id="student-qr-dialog" class="w-full max-w-sm rounded-xl p-0 shadow-xl backdrop:bg-black/40">
         <div class="p-6 text-center">

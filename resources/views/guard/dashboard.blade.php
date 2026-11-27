@@ -52,7 +52,7 @@
                     <tr>
                         <td class="px-4 py-3 text-sm text-gray-500">{{ $todaysScans->firstItem() + $loop->index }}</td>
                         <td class="px-4 py-3">{{ $scan->student->full_name }}</td>
-                        <td class="px-4 py-3">{{ $scan->student->section->name ?? '—' }}</td>
+                        <td class="px-4 py-3"><x-ui.optional-value :value="$scan->student->section->name ?? null" /></td>
                         <td class="px-4 py-3">
                             <x-ui.badge color="{{ $scan->type === 'check_in' ? 'green' : 'blue' }}">
                                 {{ $scan->type === 'check_in' ? 'Check-In' : 'Check-Out' }}

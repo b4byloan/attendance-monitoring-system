@@ -49,6 +49,11 @@ dialog[open]::backdrop {
     background-color: rgb(0 0 0 / 40%);
 }
 
+.school-brand:hover .school-brand-icon,
+.school-brand:focus-within .school-brand-icon {
+    animation: school-icon-shake 450ms ease-in-out;
+}
+
 @starting-style {
     dialog[open] {
         opacity: 0;
@@ -88,6 +93,23 @@ dialog[open]::backdrop {
     }
 }
 
+@keyframes school-icon-shake {
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    20%,
+    60% {
+        transform: rotate(-10deg);
+    }
+
+    40%,
+    80% {
+        transform: rotate(10deg);
+    }
+}
+
 @media (prefers-reduced-motion: reduce) {
     dialog {
         transition-duration: 1ms;
@@ -95,5 +117,10 @@ dialog[open]::backdrop {
 
     [data-toast] {
         animation-duration: 1ms;
+    }
+
+    .school-brand:hover .school-brand-icon,
+    .school-brand:focus-within .school-brand-icon {
+        animation: none;
     }
 }

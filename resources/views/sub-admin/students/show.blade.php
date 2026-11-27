@@ -107,10 +107,10 @@
                                     <tr>
                                         <td class="px-4 py-3 text-sm text-gray-500">{{ $subjectRecords->firstItem() + $loop->index }}</td>
                                         <td class="px-4 py-3">{{ $record->attendance_date->format('M j, Y') }}</td>
-                                        <td class="px-4 py-3">{{ $record->subject->name ?? '—' }}</td>
+                                        <td class="px-4 py-3"><x-ui.optional-value :value="$record->subject->name ?? null" /></td>
                                         <td class="px-4 py-3"><x-ui.badge color="green">{{ ucfirst($record->status) }}</x-ui.badge></td>
                                         <td class="px-4 py-3">{{ $record->scanned_at->format('h:i A') }}</td>
-                                        <td class="px-4 py-3">{{ $record->recordedBy->name ?? '—' }}</td>
+                                        <td class="px-4 py-3"><x-ui.optional-value :value="$record->recordedBy->name ?? null" /></td>
                                     </tr>
                                 @empty
                                     <tr><td colspan="6"><x-ui.empty-state message="No subject attendance recorded yet." /></td></tr>

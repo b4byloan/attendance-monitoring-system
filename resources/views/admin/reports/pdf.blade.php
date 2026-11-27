@@ -22,6 +22,7 @@
                 <th>LRN</th>
                 <th>Student Name</th>
                 <th>Section</th>
+                <th>Grade Level</th>
                 <th>Type</th>
                 <th>Time</th>
             </tr>
@@ -32,12 +33,13 @@
                     <td>{{ $record->attendance_date->format('Y-m-d') }}</td>
                     <td>{{ $record->student->lrn }}</td>
                     <td>{{ $record->student->full_name }}</td>
-                    <td>{{ $record->student->section->name ?? '' }}</td>
+                    <td><x-ui.optional-value :value="$record->student->section->name ?? null" /></td>
+                    <td><x-ui.optional-value :value="$record->student->section->grade_level ?? null" /></td>
                     <td>{{ $record->type === 'check_in' ? 'Check-In' : 'Check-Out' }}</td>
                     <td>{{ $record->scanned_at->format('h:i A') }}</td>
                 </tr>
             @empty
-                <tr><td colspan="6">No records match these filters.</td></tr>
+                <tr><td colspan="7">No records match these filters.</td></tr>
             @endforelse
         </tbody>
     </table>

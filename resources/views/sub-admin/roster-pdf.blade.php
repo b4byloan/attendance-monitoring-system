@@ -38,10 +38,10 @@
                     <td>{{ $record->scanned_at->format('Y-m-d h:i A') }}</td>
                     <td>{{ $record->student->lrn }}</td>
                     <td>{{ $record->student->full_name }}</td>
-                    <td>{{ $record->student->section->name ?? '' }}</td>
-                    <td>{{ $record->subject->name ?? '' }}</td>
+                    <td><x-ui.optional-value :value="$record->student->section->name ?? null" /></td>
+                    <td><x-ui.optional-value :value="$record->subject->name ?? null" /></td>
                     <td>{{ ucfirst($record->status) }}</td>
-                    <td>{{ $record->recordedBy->name ?? '' }}</td>
+                    <td><x-ui.optional-value :value="$record->recordedBy->name ?? null" /></td>
                 </tr>
             @empty
                 <tr><td colspan="7">No scanned students match these filters.</td></tr>

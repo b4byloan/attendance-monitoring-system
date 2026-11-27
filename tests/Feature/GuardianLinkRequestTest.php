@@ -5,6 +5,7 @@ use App\Models\GuardianLinkRequest;
 use App\Models\Section;
 use App\Models\Student;
 use App\Models\User;
+use App\Notifications\GuardianLinkRequestedNotification;
 
 function linkRequestFixture(): array
 {
@@ -63,7 +64,9 @@ it('lets a guardian send a link request to the matching student', function () {
     ]);
 
     expect($studentUser->notifications()->count())->toBe(1)
-        ->and($studentUser->notifications()->first()->data['url'])->toBe(route('student.link-requests.index'));
+        ->and($studentUser->notifications()->first()->data['url'])->toBe(route('notifications.index'))
+        ->and($studentUser->notifications()->first()->data['link_request_id'])
+        ->toBe(GuardianLinkRequest::first()->id);
 });
 
 it('rejects guardian link requests with a mismatched middle name', function () {
@@ -165,10 +168,10 @@ it('lets the student deny a guardian link request', function () {
     expect($guardianUser->notifications()->count())->toBe(1);
 });
 
-it('shows the request form and the student approval page', function () {
+it('shows the request form on the guardian side and the approval actions in the student notifications', function () {
     [$section, $student, $studentUser, $guardian, $guardianUser] = linkRequestFixture();
 
-    GuardianLinkRequest::create([
+    $linkRequest = GuardianLinkRequest::create([
         'guardian_id' => $guardian->id,
         'student_id' => $student->id,
         'status' => 'pending',
@@ -186,19 +189,27 @@ it('shows the request form and the student approval page', function () {
         ->assertSee('permanently delete the linking request')
         ->assertSee($student->full_name);
 
+    $studentUser->notify(new GuardianLinkRequestedNotification(
+        guardianName: trim($guardian->first_name.' '.$guardian->last_name),
+        relationship: $guardian->relationship_to_student ?: 'Guardian',
+        linkRequestId: $linkRequest->id,
+    ));
+
     $this->actingAs($studentUser)
-        ->get(route('student.link-requests.index'))
+        ->get(route('notifications.index'))
         ->assertOk()
+        ->assertSee('Guardian link request')
         ->assertSee('Accept')
         ->assertSee('Deny')
-        ->assertSee('Delete All')
-        ->assertSee('Delete this guardian link request?')
-        ->assertSee($guardian->first_name);
+        ->assertSee('action="'.route('student.link-requests.accept', $linkRequest).'"', false)
+        ->assertSee('action="'.route('student.link-requests.deny', $linkRequest).'"', false);
 
     $this->actingAs($studentUser)
         ->get(route('student.dashboard'))
         ->assertOk()
-        ->assertSee('Guardian link requests');
+        ->assertSee('waiting in your notifications');
+
+    expect(Route::has('student.link-requests.index'))->toBeFalse();
 });
 
 it('lets a guardian permanently delete their own link request without unlinking an accepted student', function () {
@@ -280,76 +291,10 @@ it('lets a guardian delete all their link requests without affecting other guard
     ]);
 });
 
-it('lets a student delete all their guardian requests without affecting other students or accepted links', function () {
-    [$section, $student, $studentUser, $guardian, $guardianUser] = linkRequestFixture();
-    $guardian->students()->attach($student->id);
-    $ownRequest = GuardianLinkRequest::create([
-        'guardian_id' => $guardian->id,
-        'student_id' => $student->id,
-        'status' => 'accepted',
-    ]);
-
-    $otherStudent = Student::create([
-        'lrn' => '123456789013',
-        'first_name' => 'Other',
-        'last_name' => 'Student',
-        'section_id' => $section->id,
-        'qr_code' => 'qr-other-link-student',
-        'status' => 'active',
-    ]);
-    $otherRequest = GuardianLinkRequest::create([
-        'guardian_id' => $guardian->id,
-        'student_id' => $otherStudent->id,
-        'status' => 'pending',
-    ]);
-
-    $this->actingAs($studentUser)
-        ->delete(route('student.link-requests.destroy-all'))
-        ->assertRedirect(route('student.link-requests.index'));
-
-    $this->assertModelMissing($ownRequest);
-    $this->assertModelExists($otherRequest);
-    $this->assertDatabaseHas('guardian_student', [
-        'guardian_id' => $guardian->id,
-        'student_id' => $student->id,
-    ]);
-});
-
-it('lets a student delete only their own link request', function () {
-    [$section, $student, $studentUser, $guardian, $guardianUser] = linkRequestFixture();
-    $linkRequest = GuardianLinkRequest::create([
-        'guardian_id' => $guardian->id,
-        'student_id' => $student->id,
-        'status' => 'pending',
-    ]);
-
-    $otherStudentUser = User::factory()->create(['role' => 'student', 'is_active' => true]);
-    $otherStudent = Student::create([
-        'lrn' => '123456789013',
-        'first_name' => 'Other',
-        'last_name' => 'Student',
-        'section_id' => $section->id,
-        'qr_code' => 'qr-other-link-student',
-        'status' => 'active',
-        'user_id' => $otherStudentUser->id,
-    ]);
-    $otherLinkRequest = GuardianLinkRequest::create([
-        'guardian_id' => $guardian->id,
-        'student_id' => $otherStudent->id,
-        'status' => 'pending',
-    ]);
-
-    $this->actingAs($studentUser)
-        ->delete(route('student.link-requests.destroy', $otherLinkRequest))
-        ->assertForbidden();
-
-    $this->assertModelExists($otherLinkRequest);
-
-    $this->actingAs($studentUser)
-        ->delete(route('student.link-requests.destroy', $linkRequest))
-        ->assertRedirect(route('student.link-requests.index'));
-
-    $this->assertModelMissing($linkRequest);
+it('no longer exposes the student link request page or its delete endpoints', function () {
+    expect(Route::has('student.link-requests.index'))->toBeFalse()
+        ->and(Route::has('student.link-requests.destroy'))->toBeFalse()
+        ->and(Route::has('student.link-requests.destroy-all'))->toBeFalse();
 });
 
 it('prevents another student from answering someone else\'s link request', function () {

@@ -103,6 +103,36 @@ it('no longer asks for a subject grade level', function () {
     expect(Subject::where('code', 'VE')->exists())->toBeTrue();
 });
 
+it('stores subject names in uppercase without changing the subject code casing', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.subjects.store'), [
+            'name' => 'biology',
+            'code' => 'bio',
+            'description' => 'Biology subject',
+            'status' => 'active',
+        ])
+        ->assertRedirect(route('admin.subjects.index'));
+
+    $subject = Subject::where('code', 'bio')->firstOrFail();
+
+    expect($subject->name)->toBe('BIOLOGY')
+        ->and($subject->code)->toBe('bio');
+
+    $this->put(route('admin.subjects.update', $subject), [
+        'name' => 'chemistry',
+        'code' => 'sci',
+        'description' => 'Chemistry subject',
+        'status' => 'active',
+    ])->assertRedirect(route('admin.subjects.index'));
+
+    $subject->refresh();
+
+    expect($subject->name)->toBe('CHEMISTRY')
+        ->and($subject->code)->toBe('sci');
+});
+
 it('rejects a subject without a description', function () {
     $admin = User::factory()->create(['role' => 'admin', 'is_active' => true]);
 

@@ -105,29 +105,31 @@
             <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
                 <tr>
                     <th class="px-4 py-3 text-left">#</th>
-                    <th class="px-4 py-3 text-left">Date</th>
-                    <th class="px-4 py-3 text-left">Student</th>
-                    <th class="px-4 py-3 text-left">Section</th>
-                    <th class="px-4 py-3 text-left">Type</th>
-                    <th class="px-4 py-3 text-left">Time</th>
+                    <x-ui.sortable-th column="date" label="Date" />
+                    <x-ui.sortable-th column="student" label="Student" />
+                    <x-ui.sortable-th column="section" label="Section" />
+                    <x-ui.sortable-th column="grade_level" label="Grade Level" />
+                    <x-ui.sortable-th column="type" label="Type" />
+                    <x-ui.sortable-th column="time" label="Time" />
                 </tr>
             </thead>
             <tbody class="divide-y">
                 @forelse ($records as $record)
                     <tr>
                         <td class="px-4 py-3 text-sm text-gray-500">{{ $records->firstItem() + $loop->index }}</td>
-                        <td class="px-4 py-3">{{ $record->attendance_date->format('M j, Y') }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">{{ $record->attendance_date->format('M j, Y') }}</td>
                         <td class="px-4 py-3">{{ $record->student->full_name }}</td>
-                        <td class="px-4 py-3">{{ $record->student->section->name ?? '—' }}</td>
+                        <td class="px-4 py-3"><x-ui.optional-value :value="$record->student->section->name ?? null" /></td>
+                        <td class="px-4 py-3 whitespace-nowrap"><x-ui.optional-value :value="$record->student->section->grade_level ?? null" /></td>
                         <td class="px-4 py-3">
                             <x-ui.badge color="{{ $record->type === 'check_in' ? 'green' : 'blue' }}">
                                 {{ $record->type === 'check_in' ? 'Check-In' : 'Check-Out' }}
                             </x-ui.badge>
                         </td>
-                        <td class="px-4 py-3">{{ $record->scanned_at->format('h:i A') }}</td>
+                        <td class="px-4 py-3 whitespace-nowrap">{{ $record->scanned_at->format('h:i A') }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="6"><x-ui.empty-state message="No records match these filters." /></td></tr>
+                    <tr><td colspan="7"><x-ui.empty-state message="No records match these filters." /></td></tr>
                 @endforelse
             </tbody>
         </x-ui.table>

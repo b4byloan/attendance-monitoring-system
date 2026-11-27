@@ -10,7 +10,7 @@
     $showSections = $showSections ?? false;
 @endphp
 
-<x-ui.table>
+<x-ui.table :fit="true">
     <thead class="bg-gray-50 text-gray-600 text-xs uppercase">
         <tr>
             <th class="px-4 py-3 text-left">#</th>
@@ -36,17 +36,17 @@
                     </span>
                 </td>
                 <td class="px-4 py-3">
-                    <span class="flex flex-wrap items-center gap-2">
+                    <span class="flex flex-wrap items-center gap-2 break-all">
                         {{ $account->email }}
                         <x-ui.copy-button :value="$account->email" what="email" :icon-only="true" />
                     </span>
                 </td>
-                <td class="px-4 py-3">
+                <td class="px-4 py-3 whitespace-nowrap">
                     <x-ui.badge color="{{ $roleColors[$account->role] ?? 'gray' }}">{{ $account->roleLabel() }}</x-ui.badge>
                 </td>
                 @if ($showSections)
                     <td class="px-4 py-3 text-sm text-gray-600">
-                        {{ $account->sections->pluck('name')->join(', ') ?: '—' }}
+                        <x-ui.optional-value :value="$account->sections->pluck('name')->join(', ')" />
                     </td>
                 @endif
                 <td class="px-4 py-3">

@@ -66,7 +66,6 @@
                         <p class="text-sm text-gray-500 mb-3">Used to check this student in and out at the gate and in class.</p>
                         <div class="flex flex-wrap gap-2">
                             <x-ui.button type="button" variant="secondary" onclick="document.getElementById('student-qr-modal').showModal()">View QR Code</x-ui.button>
-                            <x-ui.button href="{{ route('admin.students.qr-code.download', $student) }}" variant="secondary">Download QR</x-ui.button>
                         </div>
                     </x-ui.card>
                 </div>
@@ -120,10 +119,12 @@
                                 <tr>
                                     <td class="px-4 py-3 text-sm text-gray-500">{{ $subjectRecords->firstItem() + $loop->index }}</td>
                                     <td class="px-4 py-3">{{ $record->attendance_date->format('M j, Y') }}</td>
-                                    <td class="px-4 py-3">{{ $record->subject->name ?? '—' }}</td>
+                                    <td class="px-4 py-3">
+                                        <x-ui.optional-value :value="$record->subject->name ?? null" />
+                                    </td>
                                     <td class="px-4 py-3"><x-ui.badge color="green">{{ ucfirst($record->status) }}</x-ui.badge></td>
                                     <td class="px-4 py-3">{{ $record->scanned_at->format('h:i A') }}</td>
-                                    <td class="px-4 py-3">{{ $record->recordedBy->name ?? '—' }}</td>
+                                    <td class="px-4 py-3"><x-ui.optional-value :value="$record->recordedBy->name ?? null" /></td>
                                 </tr>
                             @empty
                                 <tr><td colspan="6"><x-ui.empty-state message="No subject attendance recorded yet." /></td></tr>
@@ -155,7 +156,7 @@
                                         <x-ui.badge color="{{ $record->type === 'check_in' ? 'green' : 'blue' }}">{{ $record->type === 'check_in' ? 'Check-In' : 'Check-Out' }}</x-ui.badge>
                                     </td>
                                     <td class="px-4 py-3">{{ $record->scanned_at->format('h:i A') }}</td>
-                                    <td class="px-4 py-3">{{ $record->recordedBy->name ?? '—' }}</td>
+                                    <td class="px-4 py-3"><x-ui.optional-value :value="$record->recordedBy->name ?? null" /></td>
                                 </tr>
                             @empty
                                 <tr><td colspan="5"><x-ui.empty-state message="No gate attendance recorded yet." /></td></tr>

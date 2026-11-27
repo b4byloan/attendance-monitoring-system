@@ -12,35 +12,88 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+    <div class="grid grid-cols-2 gap-4 mb-6 lg:grid-cols-3 xl:grid-cols-6">
         <x-ui.card>
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Total Students</p>
-            <p class="text-3xl font-bold text-gray-900 mt-1">{{ $totalStudents }}</p>
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-xs uppercase tracking-wide text-gray-500">Total Students</p>
+                    <p class="mt-1 text-3xl font-bold text-gray-900">{{ $totalStudents }}</p>
+                    <p class="mt-1 text-xs text-gray-400">{{ $activeStudents }} active</p>
+                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
+                    <x-ui.icon name="graduation-cap" class="h-5 w-5" />
+                </span>
+            </div>
         </x-ui.card>
+
         <x-ui.card>
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Present Today</p>
-            <p class="text-3xl font-bold text-green-700 mt-1">{{ $presentToday }}</p>
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-xs uppercase tracking-wide text-gray-500">Present Today</p>
+                    <p class="mt-1 text-3xl font-bold text-green-700">{{ $presentToday }}</p>
+                    <p class="mt-1 text-xs text-gray-400">{{ $presentRate }}% of active students</p>
+                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-50 text-green-600">
+                    <x-ui.icon name="circle-check" class="h-5 w-5" />
+                </span>
+            </div>
         </x-ui.card>
+
         <x-ui.card>
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Absent Today</p>
-            <p class="text-3xl font-bold text-red-700 mt-1">{{ $absentToday }}</p>
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-xs uppercase tracking-wide text-gray-500">Absent Today</p>
+                    <p class="mt-1 text-3xl font-bold text-red-700">{{ $absentToday }}</p>
+                    <p class="mt-1 text-xs text-gray-400">No check-in yet today</p>
+                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
+                    <x-ui.icon name="alert-triangle" class="h-5 w-5" />
+                </span>
+            </div>
         </x-ui.card>
+
         <x-ui.card>
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Total Sections</p>
-            <p class="text-3xl font-bold text-gray-900 mt-1">{{ $totalSections }}</p>
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-xs uppercase tracking-wide text-gray-500">Total Sections</p>
+                    <p class="mt-1 text-3xl font-bold text-gray-900">{{ $totalSections }}</p>
+                    <p class="mt-1 text-xs text-gray-400">Across all grade levels</p>
+                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                    <x-ui.icon name="layers" class="h-5 w-5" />
+                </span>
+            </div>
         </x-ui.card>
+
         <x-ui.card>
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Total Parents</p>
-            <p class="text-3xl font-bold text-gray-900 mt-1">{{ $totalParents }}</p>
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-xs uppercase tracking-wide text-gray-500">Total Parents</p>
+                    <p class="mt-1 text-3xl font-bold text-gray-900">{{ $totalParents }}</p>
+                    <p class="mt-1 text-xs text-gray-400">Guardian records</p>
+                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-purple-50 text-purple-600">
+                    <x-ui.icon name="users" class="h-5 w-5" />
+                </span>
+            </div>
         </x-ui.card>
+
         <x-ui.card>
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Attendance Events Today</p>
-            <p class="text-3xl font-bold text-gray-900 mt-1">{{ $totalAttendanceToday }}</p>
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <p class="text-xs uppercase tracking-wide text-gray-500">Attendance Events Today</p>
+                    <p class="mt-1 text-3xl font-bold text-gray-900">{{ $totalAttendanceToday }}</p>
+                    <p class="mt-1 text-xs text-gray-400">Check-ins and check-outs</p>
+                </div>
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                    <x-ui.icon name="clipboard-check" class="h-5 w-5" />
+                </span>
+            </div>
         </x-ui.card>
     </div>
 
     <x-ui.notice type="warning">
-        "Absent Today" is Total Active Students minus Present Today — it can't yet tell a real absence
+        "Absent Today" counts active students without a gate check-in today — it can't yet tell a real absence
         from a non-school day, since there's no school calendar in the system.
     </x-ui.notice>
 

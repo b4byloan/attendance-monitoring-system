@@ -52,7 +52,7 @@
                                         <span class="mx-2 px-1.5 py-0.5 text-xs font-bold text-indigo-700" aria-hidden="true">::</span>
                                     @endif
                                 @empty
-                                    <span class="text-slate-400 italic">— Unassigned</span>
+                                    <x-ui.optional-value fallback="Unassigned" />
                                 @endforelse
                             </div>
                         </td>
